@@ -313,6 +313,8 @@ const state = {
   draft:{sensor:null, connKey:null},
   chainPoolFull:[], chainSeqIds:[],
   pollTimer:null, tickTimer:null, autoEndTriggered:false,
+  teamToken:null, tabId:null, securityTimer:null, securityChannel:null,
+  securityMessage:'',
   error:''
 };
 
@@ -330,9 +332,15 @@ async function loadSession(code){
 
 async function saveSession(code, obj){
   try{
+    const headers = {'Content-Type':'application/json'};
+    if(state.role==='team' && state.teamId && state.teamToken){
+      headers['X-Team-Id']=state.teamId;
+      headers['X-Team-Token']=state.teamToken;
+      headers['X-Team-Tab']=state.tabId || '';
+    }
     const response = await fetch(`/api/sessions/${encodeURIComponent(code)}`, {
       method: 'PUT',
-      headers: {'Content-Type':'application/json'},
+      headers,
       body: JSON.stringify(obj)
     });
 
@@ -349,6 +357,130 @@ async function saveSession(code, obj){
 }
 function randCode(){ return String(Math.floor(1000+Math.random()*9000)); }
 function randId(){ return Math.random().toString(36).slice(2,9); }
+
+function teamStorageKey(code){ return `blueprint-team-token:${code}`; }
+function teamTabKey(code){ return `blueprint-team-tab:${code}`; }
+
+function beginTeamSecurity(){
+  if(state.role!=='team' || !state.code || !state.teamId || !state.teamToken) return;
+  state.tabId = sessionStorage.getItem(teamTabKey(state.code));
+  if(!state.tabId){
+    state.tabId = randId();
+    sessionStorage.setItem(teamTabKey(state.code), state.tabId);
+  }
+
+  const lockKey = `blueprint-active-tab:${state.code}:${state.teamId}`;
+  const writeLock = () => localStorage.setItem(lockKey, JSON.stringify({tabId:state.tabId, at:Date.now()}));
+
+  if(state.securityChannel) state.securityChannel.close();
+  try{
+    state.securityChannel = new BroadcastChannel(`blueprint-security:${state.code}:${state.teamId}`);
+    state.securityChannel.onmessage = async ev => {
+      if(ev.data && ev.data.type==='HELLO' && ev.data.tabId!==state.tabId){
+        state.securityChannel.postMessage({type:'CONFLICT', tabId:state.tabId});
+        await disqualifyTeam('The quiz was opened in another tab or window.');
+      }else if(ev.data && ev.data.type==='CONFLICT' && ev.data.tabId!==state.tabId){
+        await disqualifyTeam('The quiz was opened in another tab or window.');
+      }
+    };
+    state.securityChannel.postMessage({type:'HELLO', tabId:state.tabId});
+  }catch(e){}
+
+  const onStorage = async ev => {
+    if(ev.key!==lockKey || !ev.newValue) return;
+    try{
+      const v=JSON.parse(ev.newValue);
+      if(v.tabId && v.tabId!==state.tabId){
+        await disqualifyTeam('The quiz was opened in another tab or window.');
+      }
+    }catch(e){}
+  };
+  window.addEventListener('storage', onStorage);
+  state.securityStorageHandler = onStorage;
+
+  writeLock();
+  if(state.securityTimer) clearInterval(state.securityTimer);
+  state.securityTimer = setInterval(async ()=>{
+    if(state.role!=='team') return;
+    const current = localStorage.getItem(lockKey);
+    try{
+      const v=current ? JSON.parse(current) : null;
+      if(v && v.tabId!==state.tabId){
+        await disqualifyTeam('The quiz was opened in another tab or window.');
+        return;
+      }
+    }catch(e){}
+    writeLock();
+    await validateTeamSecurity();
+  }, 2000);
+}
+
+function stopTeamSecurity(){
+  if(state.securityTimer) clearInterval(state.securityTimer);
+  state.securityTimer=null;
+  if(state.securityChannel){ try{state.securityChannel.close();}catch(e){} }
+  state.securityChannel=null;
+  if(state.securityStorageHandler) window.removeEventListener('storage', state.securityStorageHandler);
+  state.securityStorageHandler=null;
+}
+
+async function validateTeamSecurity(){
+  if(state.role!=='team' || !state.code || !state.teamId || !state.teamToken || !state.tabId) return false;
+  try{
+    const r=await fetch('/api/team/validate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code:state.code,teamId:state.teamId,token:state.teamToken,tabId:state.tabId})
+    });
+    if(!r.ok){
+      const d=await r.json().catch(()=>({}));
+      await disqualifyTeam(d.error || 'This quiz attempt is no longer valid.');
+      return false;
+    }
+    return true;
+  }catch(e){ return true; }
+}
+
+async function disqualifyTeam(message){
+  if(state.securityMessage) return;
+  state.securityMessage = message || 'This quiz attempt has been disqualified.';
+  stopTeamSecurity();
+  try{
+    await fetch('/api/team/disqualify',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code:state.code,teamId:state.teamId,token:state.teamToken,reason:state.securityMessage})
+    });
+  }catch(e){}
+  state.error=state.securityMessage;
+  state.screen='team-ended';
+  render();
+}
+
+async function markJoinPageNavigation(){
+  if(state.role==='team' && state.teamId && state.teamToken){
+    await disqualifyTeam('You left the quiz and returned to the join page. This attempt is disqualified.');
+  }
+}
+
+async function checkClosedOrDuplicatedAttempt(code){
+  const token=localStorage.getItem(teamStorageKey(code));
+  const tab=sessionStorage.getItem(teamTabKey(code));
+  if(token && !tab){
+    try{
+      const decoded=JSON.parse(token);
+      await fetch('/api/team/disqualify',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({code,teamId:decoded.teamId,token:decoded.token,reason:'The quiz was closed and reopened.'})
+      });
+    }catch(e){}
+    localStorage.removeItem(teamStorageKey(code));
+    return true;
+  }
+  return false;
+}
+
 function shuffle(arr){ arr=[...arr]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
 function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function fmt(ms){
@@ -912,21 +1044,49 @@ async function handleJoinSession(){
   const name = document.getElementById('joinName').value.trim();
   if(!/^[0-9]{4}$/.test(code)){ state.error='Enter a valid 4-digit code.'; render(); return; }
   if(!name){ state.error='Enter a team name.'; render(); return; }
-  const s = await loadSession(code);
-  if(!s){ state.error='No session found with that code.'; render(); return; }
-  state.error='';
-  const teamId = randId();
-  s.teams[teamId]=name; s.scores[teamId]=0;
-  s.wallets[teamId] = {spent:0, remaining:100};
-  if(!s.finished) s.finished = {};
-  s.finished[teamId] = false;
-  await saveSession(code, s);
-  state.code=code; state.session=s; state.teamId=teamId; state.teamName=name; state.role='team';
-  state.screen = s.phase==='round' ? 'team-round' : (s.phase==='ended' ? 'team-ended' : 'team-wait');
-  startPolling();
-  render();
-}
 
+  const existingToken=localStorage.getItem(teamStorageKey(code));
+  if(existingToken){
+    state.error='This quiz attempt is already active on this device. Reopening or using another tab/device is not allowed.';
+    render();
+    return;
+  }
+
+  try{
+    const response=await fetch('/api/team/join',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code,name})
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok){
+      state.error=data.error || 'Unable to join this quiz.';
+      render();
+      return;
+    }
+
+    const s=data.session;
+    state.error='';
+    state.code=code;
+    state.session=s;
+    state.teamId=data.teamId;
+    state.teamName=data.teamName;
+    state.teamToken=data.token;
+    state.role='team';
+
+    localStorage.setItem(teamStorageKey(code), JSON.stringify({teamId:data.teamId,token:data.token}));
+    sessionStorage.setItem(teamTabKey(code), randId());
+
+    state.screen = s.phase==='round' ? 'team-round' : (s.phase==='ended' ? 'team-ended' : 'team-wait');
+    startPolling();
+    render();
+    beginTeamSecurity();
+    history.pushState({blueprintTeam:true,code},'',location.href);
+  }catch(e){
+    state.error='Unable to connect to the quiz server.';
+    render();
+  }
+}
 async function handleSubmitDesign(){
   const s = await loadSession(state.code) || state.session;
 
@@ -1032,6 +1192,11 @@ document.addEventListener('click', async (e)=>{
   if(!el) return;
   const action = el.getAttribute('data-action');
 
+  if(state.role==='team' && !['pick-sensor','pick-conn','add-chip','reset-chain','submit-design','finish-round'].includes(action)){
+    const ok=await validateTeamSecurity();
+    if(!ok) return;
+  }
+
   if(action==='go-host'){
     state.role='host'; state.code=randCode();
     state.draftProblemIds=[]; state.draftMinutes=20;
@@ -1108,6 +1273,10 @@ document.addEventListener('click', async (e)=>{
     render();
   }
   else if(action==='reset'){
+    if(state.role==='team' && state.teamId && state.teamToken){
+      await markJoinPageNavigation();
+      return;
+    }
     stopPolling(); stopTicker();
     Object.assign(state, {
       role:null, screen:'landing', code:null, session:null, teamId:null, teamName:null,
@@ -1118,14 +1287,36 @@ document.addEventListener('click', async (e)=>{
   }
 });
 
+window.addEventListener('beforeunload', ()=>{
+  // Do not disqualify on refresh: sessionStorage survives a normal reload.
+  // The next load detects a missing tab marker after a real close/reopen.
+  if(state.role==='team' && state.code && state.teamId && state.teamToken){
+    try{
+      const payload=JSON.stringify({code:state.code,teamId:state.teamId,token:state.teamToken,tabId:state.tabId});
+      navigator.sendBeacon('/api/team/presence', new Blob([payload],{type:'application/json'}));
+    }catch(e){}
+  }
+});
+
 // ---------- init ----------
-(function init(){
+(async function init(){
   const params = new URLSearchParams(location.search);
   const sess = params.get('session');
   if(sess && /^[0-9]{4}$/.test(sess)){
     state.code = sess; state.role='team'; state.screen='team-join';
+    const wasClosed = await checkClosedOrDuplicatedAttempt(sess);
+    if(wasClosed){
+      state.error='Your previous quiz window was closed and reopened. That attempt is disqualified.';
+    }
   }
   render();
+
+  window.addEventListener('popstate', async ()=>{
+    if(state.role==='team' && state.teamId){
+      await markJoinPageNavigation();
+      history.pushState({blueprintTeam:true,code:state.code},'',location.href);
+    }
+  });
 })();
 </script>
 </body>
