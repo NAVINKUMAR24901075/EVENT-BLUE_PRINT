@@ -373,8 +373,23 @@ function stopTicker(){ if(state.tickTimer) clearInterval(state.tickTimer); state
 
 function autoAdvance(){
   const s = state.session; if(!s || state.role!=='team') return;
+
+  if(s.phase==='ended'){
+    if(state.screen!=='team-ended') state.screen='team-ended';
+    return;
+  }
+
+  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+  const finished = !!(s.finished && s.finished[state.teamId]);
+
+  // Once the team has spent all 100 IoT-Coins, they cannot open
+  // or attempt another problem. Move them directly to the Finish screen.
+  if(s.phase==='round' && (wallet.remaining <= 0 || finished)){
+    if(state.screen!=='team-finish') state.screen='team-finish';
+    return;
+  }
+
   if(state.screen==='team-wait' && s.phase==='round'){ state.screen='team-round'; }
-  if((state.screen==='team-wait'||state.screen==='team-round') && s.phase==='ended'){ state.screen='team-ended'; }
 }
 
 function roundRemainingMs(){
@@ -419,6 +434,7 @@ function screenHTML(){
     case 'team-wait': return teamWaitScreen();
     case 'team-round': return teamRoundScreen();
     case 'team-problem': return teamProblemScreen();
+    case 'team-finish': return teamFinishScreen();
     case 'team-ended': return teamEndedScreen();
     default: return landingScreen();
   }
@@ -601,6 +617,11 @@ function teamRoundScreen(){
   const subs = s.submissions[state.teamId] || {};
   const myScore = s.scores[state.teamId] || 0;
   const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+
+  if(wallet.remaining <= 0 || (s.finished && s.finished[state.teamId])){
+    return teamFinishScreen();
+  }
+
   return `
   <div class="timebar-wrap">
     <div class="timebar-track"><div class="timebar-fill" style="width:${Math.max(0,frac*100)}%;background:${color};"></div></div>
@@ -630,7 +651,19 @@ function teamRoundScreen(){
 // ---------- TEAM: problem workspace ----------
 function teamProblemScreen(){
   const s = state.session;
+  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+
+  if(s.phase==='ended'){
+    return teamEndedScreen();
+  }
+
+  if(wallet.remaining <= 0 || (s.finished && s.finished[state.teamId])){
+    return teamFinishScreen();
+  }
+
   const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+  if(!problem) return teamRoundScreen();
+
   const existing = (s.submissions[state.teamId]||{})[problem.id];
   const rem = roundRemainingMs();
   const timeUp = rem<=0 || s.phase==='ended';
@@ -667,7 +700,9 @@ function resultView(problem, r, timeUp){
     <div class="eyebrow">Total</div>
     <div class="mono" style="font-size:38px;color:var(--cyan);font-weight:700;">${r.total} / 30</div>
   </div>
-  ${!timeUp ? `<div class="center" style="margin-top:18px;"><button class="btn-ghost btn" data-action="edit-problem">Edit Design</button></div>` : `<p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">Round has ended — designs are locked.</p>`}
+  ${timeUp
+    ? `<p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">Round has ended — designs are locked.</p>`
+    : `<p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">Design submitted. This problem is complete and can no longer be redesigned.</p>`}
   `;
 }
 
@@ -740,6 +775,33 @@ function builderView(problem, timeUp, s){
   <div class="divider"></div>
   <button class="btn btn-cyan" data-action="submit-design" ${(!bothChosen || filledSlots<5)?'disabled':''}>Submit Design →</button>
   `}
+  `;
+}
+
+function teamFinishScreen(){
+  const s = state.session;
+  const wallet = s.wallets[state.teamId] || {spent:100, remaining:0};
+  const myScore = s.scores[state.teamId] || 0;
+
+  return `
+  <div class="status-banner">
+    <div class="eyebrow">100 IoT-Coins used</div>
+    <h2>You're finished!</h2>
+    <p>Your team has used the complete 100 IoT-Coin budget.</p>
+  </div>
+
+  <div class="card center" style="max-width:520px;margin:0 auto;">
+    <div class="eyebrow">Budget exhausted</div>
+    <div class="mono" style="font-size:46px;color:var(--amber);font-weight:700;">${wallet.spent} / 100</div>
+    <p style="color:var(--slate);margin:8px 0 4px;">IoT-Coins used</p>
+    <div class="divider"></div>
+    <p style="margin:0 0 18px;color:var(--slate);">No more problems can be attempted. Your completed designs are locked.</p>
+    <div class="row" style="justify-content:center;gap:10px;">
+      <span class="pill live">Score: ${myScore}</span>
+      <span class="pill">Questions completed: ${Object.keys(s.submissions[state.teamId]||{}).length}</span>
+    </div>
+    <button class="btn btn-cyan" style="margin-top:20px;" data-action="finish-round">Finish →</button>
+  </div>
   `;
 }
 
@@ -818,7 +880,7 @@ async function handleOpenLobby(){
     problemIds: state.draftProblemIds.slice(),
     roundDurationMs: minutes*60000,
     roundStartedAt: null,
-    teams:{}, scores:{}, submissions:{}, wallets:{}
+    teams:{}, scores:{}, submissions:{}, wallets:{}, finished:{}
   };
   await saveSession(state.code, session);
   state.session = session;
@@ -856,6 +918,8 @@ async function handleJoinSession(){
   const teamId = randId();
   s.teams[teamId]=name; s.scores[teamId]=0;
   s.wallets[teamId] = {spent:0, remaining:100};
+  if(!s.finished) s.finished = {};
+  s.finished[teamId] = false;
   await saveSession(code, s);
   state.code=code; state.session=s; state.teamId=teamId; state.teamName=name; state.role='team';
   state.screen = s.phase==='round' ? 'team-round' : (s.phase==='ended' ? 'team-ended' : 'team-wait');
@@ -865,12 +929,66 @@ async function handleJoinSession(){
 
 async function handleSubmitDesign(){
   const s = await loadSession(state.code) || state.session;
-  if(s.phase==='ended'){ state.session=s; state.screen='team-round'; render(); return; }
+
+  if(s.phase==='ended'){
+    state.session=s;
+    state.screen='team-ended';
+    render();
+    return;
+  }
+
+  if(!s.wallets[state.teamId]){
+    s.wallets[state.teamId] = {spent:0, remaining:100};
+  }
+
+  const wallet = s.wallets[state.teamId];
+
+  // No more problems are allowed once the 100-coin budget is exhausted.
+  if(wallet.remaining <= 0){
+    if(!s.finished) s.finished = {};
+    s.finished[state.teamId] = true;
+    await saveSession(state.code, s);
+    state.session=s;
+    state.screen='team-finish';
+    render();
+    return;
+  }
+
   const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+  if(!problem || !state.draft.sensor || !state.draft.connKey){
+    state.error='Complete the design before submitting.';
+    render();
+    return;
+  }
+
+  // A completed problem cannot be submitted again or redesigned.
+  const existingSubs = s.submissions[state.teamId] || {};
+  if(existingSubs[problem.id]){
+    state.editingProblem=false;
+    state.session=s;
+    state.screen='team-round';
+    render();
+    return;
+  }
+
   const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
+  if(!connOpt){
+    state.error='Please choose a valid connectivity option.';
+    render();
+    return;
+  }
+
   const sensorPts = problem.correctSensors.includes(state.draft.sensor.label) ? 10 : 0;
   const connPts = connOpt.points;
   const coinCost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
+
+  // Never allow the team to spend more than its remaining 100 IoT-Coins.
+  if(coinCost > wallet.remaining){
+    state.error=`This design costs ${coinCost} IoT-Coins, but only ${wallet.remaining} remain. Choose a lower-cost connectivity option.`;
+    render();
+    return;
+  }
+
   const chosenTypes = state.chainSeqIds.map(id => state.chainPoolFull.find(c=>c.id===id).type);
   const chainCorrect = JSON.stringify(chosenTypes) === JSON.stringify(CHAIN_TYPES);
   const chainPts = chainCorrect ? 5 : 0;
@@ -883,10 +1001,28 @@ async function handleSubmitDesign(){
 
   if(!s.submissions[state.teamId]) s.submissions[state.teamId] = {};
   s.submissions[state.teamId][problem.id] = result;
+
   recomputeTeamBudget(state.teamId, s);
+
+  if(!s.finished) s.finished = {};
+
+  // Exactly 0 coins means the team is finished immediately.
+  if(s.wallets[state.teamId].remaining === 0){
+    s.finished[state.teamId] = true;
+  }
+
   await saveSession(state.code, s);
+
   state.session = s;
   state.editingProblem = false;
+  state.error='';
+
+  if(s.finished[state.teamId]){
+    state.screen='team-finish';
+  }else{
+    state.screen='team-problem';
+  }
+
   render();
 }
 
@@ -922,23 +1058,27 @@ document.addEventListener('click', async (e)=>{
   else if(action==='end-round-now') handleEndRoundNow();
   else if(action==='join-session') handleJoinSession();
   else if(action==='open-problem'){
+    const s = await loadSession(state.code) || state.session;
+    state.session = s;
+
+    const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+
+    // Block every new question after all 100 IoT-Coins are used.
+    if(s.phase==='ended' || wallet.remaining <= 0 || (s.finished && s.finished[state.teamId])){
+      state.screen = s.phase==='ended' ? 'team-ended' : 'team-finish';
+      render();
+      return;
+    }
+
     state.currentProblemId = parseInt(el.getAttribute('data-id'),10);
     state.editingProblem = false;
     state.draft = {sensor:null, connKey:null};
     state.chainPoolFull=[]; state.chainSeqIds=[];
+    state.error='';
     state.screen='team-problem'; render();
   }
-  else if(action==='edit-problem'){
-    const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
-    const existing = (state.session.submissions[state.teamId]||{})[problem.id];
-    if(existing){
-      const sensorObj = problem.sensorOptions.find(o=>o.label===existing.sensorLabel) || {label:existing.sensorLabel, emoji:'🔧'};
-      const connOpt = problem.connectivity.find(c=>c.label===existing.connLabel);
-      state.draft = {sensor:sensorObj, connKey: connOpt?connOpt.key:null};
-      computeChainPool(problem);
-    }
-    state.editingProblem = true; render();
-  }
+
+
   else if(action==='pick-sensor'){
     const label = el.getAttribute('data-label');
     const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
@@ -961,6 +1101,12 @@ document.addEventListener('click', async (e)=>{
   }
   else if(action==='reset-chain'){ state.chainSeqIds=[]; render(); }
   else if(action==='submit-design') handleSubmitDesign();
+  else if(action==='finish-round'){
+    const s = await loadSession(state.code) || state.session;
+    state.session=s;
+    state.screen = s.phase==='ended' ? 'team-ended' : 'team-ended';
+    render();
+  }
   else if(action==='reset'){
     stopPolling(); stopTicker();
     Object.assign(state, {
