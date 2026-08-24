@@ -315,7 +315,7 @@ const state = {
   pollTimer:null, tickTimer:null, autoEndTriggered:false,
   teamToken:null, tabId:null, securityTimer:null, securityChannel:null,
   securityMessage:'',
-  error:''
+  error:'', joining:false
 };
 
 // ---------- SERVER STORAGE ----------
@@ -727,7 +727,7 @@ function teamJoinScreen(){
     <h2 style="margin-bottom:18px;">Enter the room code</h2>
     <div class="field"><label>Session code</label><input type="text" id="joinCode" maxlength="4" placeholder="1234" value="${escapeHtml(state.code||'')}"></div>
     <div class="field"><label>Team name</label><input type="text" id="joinName" placeholder="e.g. The Signal Chasers"></div>
-    <button class="btn btn-block" data-action="join-session">Join →</button>
+    <button class="btn btn-block" data-action="join-session" ${state.joining?'disabled':''}>${state.joining?'Joining…':'Join →'}</button>
     ${state.error ? `<p style="color:var(--coral);">${state.error}</p>`:''}
   </div>`;
 }
@@ -743,9 +743,10 @@ function teamWaitScreen(){
 
 function teamRoundScreen(){
   const s = state.session;
+  const isLobby = s.phase === 'lobby';
   const rem = roundRemainingMs();
-  const frac = rem / s.roundDurationMs;
-  const color = frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)');
+  const frac = isLobby ? 1 : rem / s.roundDurationMs;
+  const color = isLobby ? 'var(--amber)' : (frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)'));
   const subs = s.submissions[state.teamId] || {};
   const myScore = s.scores[state.teamId] || 0;
   const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
@@ -755,10 +756,15 @@ function teamRoundScreen(){
   }
 
   return `
+  ${isLobby ? `<div class="status-banner" style="padding:10px 20px 22px;">
+    <div class="eyebrow">Joined successfully</div>
+    <h2>You're in, ${escapeHtml(state.teamName)}</h2>
+    <p>The quiz is ready. The host has not started the timer yet. You can review the problems now; the countdown begins when the host starts the round.</p>
+  </div>` : `
   <div class="timebar-wrap">
     <div class="timebar-track"><div class="timebar-fill" style="width:${Math.max(0,frac*100)}%;background:${color};"></div></div>
     <div class="timebar-txt" style="color:${color};">${fmt(rem)}</div>
-  </div>
+  </div>`}
   <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
     <h2>Your problems</h2>
     <div class="row" style="gap:8px;">
@@ -1040,6 +1046,8 @@ async function handleEndRoundNow(){
 }
 
 async function handleJoinSession(){
+  if(state.joining) return;
+
   const code = document.getElementById('joinCode').value.trim();
   const name = document.getElementById('joinName').value.trim();
   if(!/^[0-9]{4}$/.test(code)){ state.error='Enter a valid 4-digit code.'; render(); return; }
@@ -1052,14 +1060,19 @@ async function handleJoinSession(){
     return;
   }
 
+  state.joining = true;
+  render();
+
   try{
     const response=await fetch('/api/team/join',{
+
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({code,name})
     });
     const data=await response.json().catch(()=>({}));
     if(!response.ok){
+      state.joining = false;
       state.error=data.error || 'Unable to join this quiz.';
       render();
       return;
@@ -1073,16 +1086,22 @@ async function handleJoinSession(){
     state.teamName=data.teamName;
     state.teamToken=data.token;
     state.role='team';
+    state.joining = false;
 
     localStorage.setItem(teamStorageKey(code), JSON.stringify({teamId:data.teamId,token:data.token}));
     sessionStorage.setItem(teamTabKey(code), randId());
 
-    state.screen = s.phase==='round' ? 'team-round' : (s.phase==='ended' ? 'team-ended' : 'team-wait');
+    // IMPORTANT: after a successful join, go straight to the quiz screen.
+    // If the host has not started the timed round yet, the quiz screen remains
+    // visible and clearly shows that the round is waiting for the host.
+    // Once the host starts, polling automatically switches the state to live.
+    state.screen = s.phase==='ended' ? 'team-ended' : 'team-round';
     startPolling();
     render();
     beginTeamSecurity();
     history.pushState({blueprintTeam:true,code},'',location.href);
   }catch(e){
+    state.joining = false;
     state.error='Unable to connect to the quiz server.';
     render();
   }
@@ -1192,7 +1211,7 @@ document.addEventListener('click', async (e)=>{
   if(!el) return;
   const action = el.getAttribute('data-action');
 
-  if(state.role==='team' && !['pick-sensor','pick-conn','add-chip','reset-chain','submit-design','finish-round'].includes(action)){
+  if(state.role==='team' && !['join-session','pick-sensor','pick-conn','add-chip','reset-chain','submit-design','finish-round'].includes(action)){
     const ok=await validateTeamSecurity();
     if(!ok) return;
   }
