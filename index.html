@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blueprint Round — IoTVerse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --ink:#0F1420; --ink-2:#171E2E; --ink-3:#20293D;
+    --paper:#F3F1EA; --slate:#7C8AA3;
+    --amber:#FFB020; --cyan:#3FE0C5; --coral:#FF5C5C; --violet:#8B7CF6;
+    --grid-line: rgba(63,224,197,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background-color:var(--ink);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:34px 34px;
+    color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'Space Mono',monospace;}
+  .screen{max-width:1000px;margin:0 auto;padding:26px 20px 60px;width:100%;flex:1;}
+  .eyebrow{text-transform:uppercase;font-size:12px;letter-spacing:.14em;color:var(--slate);font-weight:700;margin-bottom:6px;}
+  .card{background:var(--ink-2);border-radius:18px;padding:24px;border:1px solid rgba(255,255,255,0.06);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--amber);color:var(--ink);border:none;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;padding:13px 24px;border-radius:999px;cursor:pointer;
+    text-transform:uppercase;letter-spacing:.04em;transition:transform .12s, filter .12s;}
+  .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+  .btn-ghost{background:transparent;color:var(--paper);border:1.5px solid rgba(255,255,255,0.18);}
+  .btn-ghost:hover{border-color:var(--paper);filter:none;}
+  .btn-cyan{background:var(--cyan);}
+  .btn-coral{background:var(--coral);}
+  .btn-sm{padding:9px 16px;font-size:12px;}
+  .btn-block{width:100%;}
+  input[type=text],input[type=number]{
+    width:100%;background:var(--ink);border:1.5px solid rgba(255,255,255,0.12);color:var(--paper);
+    font-family:'Inter',sans-serif;font-size:16px;padding:13px 15px;border-radius:12px;outline:none;}
+  input:focus{border-color:var(--amber);}
+  label{font-size:12px;color:var(--slate);font-weight:700;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;}
+  .field{margin-bottom:16px;}
+  .row{display:flex;gap:12px;flex-wrap:wrap;}
+  .center{text-align:center;}
+  .divider{height:1px;background:rgba(255,255,255,0.06);margin:22px 0;}
+  .empty{color:var(--slate);font-size:14px;padding:16px 0;}
+  .pill{display:inline-block;background:var(--ink-3);color:var(--slate);font-size:11px;font-weight:700;padding:6px 13px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em;}
+  .pill.live{background:rgba(63,224,197,0.14);color:var(--cyan);}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
+  .brand .dot{color:var(--amber);}
+
+  .landing-hero{text-align:center;padding:64px 20px 36px;}
+  .landing-hero h1{font-size:48px;line-height:1.04;}
+  .landing-hero .accent{color:var(--amber);}
+  .landing-hero p{color:var(--slate);font-size:16px;margin:14px auto 32px;max-width:480px;}
+  .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px;margin:0 auto;}
+  @media(max-width:560px){.role-grid{grid-template-columns:1fr;} .landing-hero h1{font-size:34px;}}
+  .role-card{background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px 20px;cursor:pointer;text-align:left;transition:border-color .15s, transform .15s;}
+  .role-card:hover{border-color:var(--amber);transform:translateY(-2px);}
+  .role-card .tag{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);font-weight:700;margin-bottom:8px;}
+  .role-card h3{font-size:19px;margin-bottom:5px;}
+  .role-card p{color:var(--slate);font-size:13.5px;margin:0;line-height:1.4;}
+
+  .problem-check{display:flex;gap:14px;align-items:flex-start;padding:16px;border:1.5px solid rgba(255,255,255,0.08);border-radius:14px;cursor:pointer;margin-bottom:10px;transition:border-color .15s;}
+  .problem-check:hover{border-color:var(--amber);}
+  .problem-check.on{border-color:var(--cyan);background:rgba(63,224,197,0.06);}
+  .problem-check .box{width:20px;height:20px;border-radius:6px;border:2px solid var(--slate);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .problem-check.on .box{border-color:var(--cyan);background:var(--cyan);color:var(--ink);}
+  .problem-check h4{margin:0 0 3px;font-size:15px;font-family:'Space Grotesk',sans-serif;}
+  .problem-check p{margin:0;color:var(--slate);font-size:13px;line-height:1.4;}
+
+  .qr-box{background:var(--paper);padding:14px;border-radius:16px;display:inline-block;}
+  .code-display{font-family:'Space Mono',monospace;font-size:40px;letter-spacing:.1em;color:var(--amber);}
+  .team-chip{display:inline-flex;align-items:center;gap:8px;background:var(--ink-3);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;margin:4px 6px 4px 0;}
+
+  .ringwrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .ringlabel{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--slate);font-weight:700;}
+
+  .timebar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+  .timebar-track{flex:1;height:10px;border-radius:999px;background:var(--ink-3);overflow:hidden;}
+  .timebar-fill{height:100%;border-radius:999px;transition:width .25s linear;}
+  .timebar-txt{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;white-space:nowrap;}
+
+  .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .ptile{background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px;cursor:pointer;transition:border-color .15s, transform .15s;text-align:left;}
+  .ptile:hover{border-color:var(--amber);transform:translateY(-2px);}
+  .ptile.done{border-color:var(--cyan);}
+  .ptile .pnum{font-family:'Space Mono',monospace;color:var(--slate);font-size:12px;margin-bottom:6px;}
+  .ptile h4{font-size:16px;margin-bottom:6px;}
+  .ptile .pstatus{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);}
+  .ptile.done .pstatus{color:var(--cyan);}
+
+  .opt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  @media(max-width:600px){.opt-grid{grid-template-columns:1fr;}}
+  .selopt{display:flex;align-items:center;gap:12px;border:1.5px solid rgba(255,255,255,0.09);background:var(--ink-3);
+    border-radius:14px;padding:15px 16px;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;color:var(--paper);
+    transition:border-color .12s, transform .1s; width:100%;}
+  .selopt:hover{border-color:var(--amber);}
+  .selopt.sel{border-color:var(--cyan);background:rgba(63,224,197,0.08);}
+  .selopt .em{font-size:20px;}
+  .selopt .costbadge{margin-left:auto;font-family:'Space Mono',monospace;font-size:12px;color:var(--slate);}
+
+  .chainzone{background:var(--ink-3);border-radius:16px;padding:18px;margin-top:6px;}
+  .slots{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .slot{flex:1;min-width:90px;height:64px;border:2px dashed rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:var(--slate);text-align:center;padding:6px;}
+  .slot.filled{border-style:solid;border-color:var(--cyan);background:rgba(63,224,197,0.08);color:var(--paper);font-weight:600;}
+  .pool{display:flex;gap:10px;flex-wrap:wrap;}
+  .chip{background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;transition:border-color .12s;}
+  .chip:hover{border-color:var(--amber);}
+
+  table{width:100%;border-collapse:collapse;}
+  th,td{text-align:left;padding:11px 9px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13.5px;}
+  th{color:var(--slate);text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-weight:700;}
+  td.pts{font-family:'Space Mono',monospace;color:var(--cyan);font-weight:700;}
+
+  .lead-row{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .lead-rank{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;color:var(--slate);width:32px;}
+  .lead-rank.gold{color:var(--amber);}
+  .lead-name{flex:1;font-weight:600;}
+  .lead-score{font-family:'Space Mono',monospace;font-weight:700;color:var(--cyan);}
+
+  .breakdown-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .breakdown-row:last-child{border-bottom:none;}
+  .breakdown-row .bl{font-weight:600;}
+  .breakdown-row .bd{color:var(--slate);font-size:12.5px;margin-top:3px;line-height:1.4;max-width:520px;}
+  .breakdown-row .bp{font-family:'Space Mono',monospace;font-weight:700;color:var(--cyan);white-space:nowrap;}
+  .breakdown-row .bp.zero{color:var(--coral);}
+  .badge-v{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;margin-left:8px;}
+  .badge-v.optimal{background:rgba(63,224,197,0.15);color:var(--cyan);}
+  .badge-v.acceptable{background:rgba(255,176,32,0.15);color:var(--amber);}
+  .badge-v.incorrect{background:rgba(255,92,92,0.15);color:var(--coral);}
+  .scenario{font-size:16px;line-height:1.5;font-style:italic;color:var(--paper);}
+  .status-banner{text-align:center;padding:36px 20px;color:var(--slate);}
+  .status-banner h2{color:var(--paper);margin-bottom:8px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   BLUEPRINT ROUND — IoTVerse chain-building challenge
+   Teams pick a sensor + connectivity card, then arrange the
+   5-stage pipeline (Sensor -> Connectivity -> Cloud -> Data -> Action).
+   Auto-scored against the answer-key rubric. Shared timer.
+========================================================= */
+
+// ---------- problem bank (from Round 1 Problem Bank & Answer Keys) ----------
+const PROBLEMS = [
+  {
+    id:1, title:"Downtown Flooding",
+    card:"Downtown floods every monsoon because drainage blockages aren't detected in time.",
+    sensorOptions:[
+      {label:"Water Level Sensor", emoji:"💧"},
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"GPS/Location Sensor", emoji:"📍"}
+    ],
+    correctSensors:["Water Level Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Long range, low power — perfect for city-wide drain sensors."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if near city infrastructure, but limited range and higher power use."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"High bandwidth, but expensive operational cost for simple water sensors."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range is too short (<10m) for underground city drainage networks."}
+    ],
+    dataLabel:"Water level rising", actionLabel:"Alert Municipal Team", actionEmoji:"🚨"
+  },
+  {
+    id:2, title:"Hospital Generator Failure",
+    card:"The hospital's ICU had two equipment failures because nobody knew the backup generator's fuel was low.",
+    sensorOptions:[
+      {label:"Fuel Level Sensor", emoji:"⛽"},
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Water Flow Sensor", emoji:"💧"},
+      {label:"Light/Ambient Sensor", emoji:"💡"}
+    ],
+    correctSensors:["Fuel Level Sensor","Temperature Sensor"],
+    connectivity:[
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed indoor location, always-on reliability suits critical monitoring."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Short-range single-room monitoring works equally well here."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary operational cost for a fixed indoor sensor."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Built for wide-area outdoor spread, not a single indoor generator."}
+    ],
+    dataLabel:"Fuel below 20%", actionLabel:"Alert Maintenance Staff", actionEmoji:"🚨"
+  },
+  {
+    id:3, title:"Campus Bike Theft",
+    card:"Campus bike theft has tripled this year and there's no way to track missing bikes.",
+    sensorOptions:[
+      {label:"GPS/Location Sensor", emoji:"📍"},
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"},
+      {label:"Soil Moisture Sensor", emoji:"🌱"}
+    ],
+    correctSensors:["GPS/Location Sensor","Motion Sensor"],
+    connectivity:[
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"optimal", points:10, penalty:0, reason:"Bike is moving, needs continuous wide-area real-time tracking."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Only works while bike is within campus Wi-Fi range, fails once it leaves."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Long range works, but not ideal for real-time continuous tracking."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Far too short range for tracking a moving bike across campus."}
+    ],
+    dataLabel:"Bike moved outside geofence", actionLabel:"Alert Owner/Security", actionEmoji:"🚨"
+  },
+  {
+    id:4, title:"Smart Waste Overflow",
+    card:"City garbage bins are either collected too early (half-empty) or too late (overflowing) because collection is on a fixed schedule, not actual need.",
+    sensorOptions:[
+      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"},
+      {label:"Water Level Sensor", emoji:"💧"},
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"GPS/Location Sensor", emoji:"📍"}
+    ],
+    correctSensors:["Fill-Level/Ultrasonic Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Bins spread across city, infrequent low-power updates fit perfectly."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if bins are within city Wi-Fi coverage, but not built for scattered outdoor use."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"Works but unnecessarily expensive for infrequent fill-level updates."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too short for city-wide spread bins."}
+    ],
+    dataLabel:"Bin at 90% full", actionLabel:"Schedule Collection", actionEmoji:"🚛"
+  },
+  {
+    id:5, title:"Apartment Water Leakage",
+    card:"A residential apartment complex loses thousands of liters of water every month to undetected pipe leaks.",
+    sensorOptions:[
+      {label:"Water Flow Sensor", emoji:"💧"},
+      {label:"Water Level Sensor", emoji:"💧"},
+      {label:"Fuel Level Sensor", emoji:"⛽"},
+      {label:"Motion Sensor", emoji:"👤"}
+    ],
+    correctSensors:["Water Flow Sensor","Water Level Sensor"],
+    connectivity:[
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed building infrastructure, moderate range is exactly enough."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"acceptable", points:7, penalty:5, reason:"Works for a single unit/floor, not the whole complex."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Works but overkill unless the complex is unusually large/spread out."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost/complexity for a fixed indoor plumbing sensor."}
+    ],
+    dataLabel:"Unusual flow detected at 2AM", actionLabel:"Alert Facility Manager", actionEmoji:"🚨"
+  },
+  {
+    id:6, title:"Streetlight Energy Waste",
+    card:"Streetlights across the city stay on during the day and don't dim when no one's around at night, wasting significant electricity.",
+    sensorOptions:[
+      {label:"Light/Ambient Sensor", emoji:"💡"},
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"}
+    ],
+    correctSensors:["Light/Ambient Sensor","Motion Sensor"],
+    connectivity:[
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Local automation, no need for high bandwidth or wide range."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Works for a city-wide streetlight network, though Wi-Fi is simpler here."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost for simple on/off automation."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too limited to connect streetlights to a central system."}
+    ],
+    dataLabel:"Daylight detected", actionLabel:"Lights OFF", actionEmoji:"💡"
+  },
+  {
+    id:7, title:"Air Quality Alerts",
+    card:"Residents near an industrial zone have no way of knowing when pollution levels spike to unsafe levels.",
+    sensorOptions:[
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Water Level Sensor", emoji:"💧"},
+      {label:"GPS/Location Sensor", emoji:"📍"}
+    ],
+    correctSensors:["Air Quality Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Outdoor monitoring stations spread across a zone, low power."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if stations are within existing Wi-Fi coverage."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"Works but costly for periodic AQI readings."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for outdoor zone-wide monitoring."}
+    ],
+    dataLabel:"AQI above safe threshold", actionLabel:"Public Alert Notification", actionEmoji:"🚨"
+  },
+  {
+    id:8, title:"Farm Irrigation Waste",
+    card:"A cooperative of small farmers over-waters some fields and under-waters others because irrigation is done on a fixed schedule, not actual soil condition.",
+    sensorOptions:[
+      {label:"Soil Moisture Sensor", emoji:"🌱"},
+      {label:"Water Flow Sensor", emoji:"💧"},
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Fuel Level Sensor", emoji:"⛽"}
+    ],
+    correctSensors:["Soil Moisture Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Farms spread out, infrequent low-power readings fit perfectly."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works only if fields are within existing Wi-Fi coverage."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"incorrect", points:0, penalty:0, reason:"Unnecessarily expensive for simple periodic soil readings."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for spread-out farmland."}
+    ],
+    dataLabel:"Moisture below 20%", actionLabel:"Irrigation ON", actionEmoji:"💧"
+  }
+];
+
+const CHAIN_TYPES = ["sensor","connectivity","cloud","data","action"];
+
+// ---------- state ----------
+const state = {
+  role:null, screen:'landing', code:null, session:null,
+  teamId:null, teamName:null,
+  draftProblemIds:[], draftMinutes:20,
+  currentProblemId:null, editingProblem:false,
+  draft:{sensor:null, connKey:null},
+  chainPoolFull:[], chainSeqIds:[],
+  pollTimer:null, tickTimer:null, autoEndTriggered:false,
+  error:''
+};
+
+// ---------- SERVER STORAGE ----------
+async function loadSession(code){
+  try{
+    const response = await fetch(`/api/sessions/${encodeURIComponent(code)}`);
+    if(!response.ok) return null;
+    return await response.json();
+  }catch(e){
+    console.error("Failed to load session:", e);
+    return null;
+  }
+}
+
+async function saveSession(code, obj){
+  try{
+    const response = await fetch(`/api/sessions/${encodeURIComponent(code)}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(obj)
+    });
+
+    if(!response.ok){
+      console.error("Failed to save session:", response.status);
+      return false;
+    }
+
+    return true;
+  }catch(e){
+    console.error("Failed to save session:", e);
+    return false;
+  }
+}
+function randCode(){ return String(Math.floor(1000+Math.random()*9000)); }
+function randId(){ return Math.random().toString(36).slice(2,9); }
+function shuffle(arr){ arr=[...arr]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function fmt(ms){
+  const total = Math.max(0, Math.ceil(ms/1000));
+  const m = Math.floor(total/60); const s = total%60;
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+// ---------- polling / ticking ----------
+function startPolling(){
+  stopPolling();
+  state.pollTimer = setInterval(async ()=>{
+    if(!state.code) return;
+    const s = await loadSession(state.code);
+    if(s){ state.session = s; autoAdvance(); }
+    render();
+  }, 1500);
+}
+function stopPolling(){ if(state.pollTimer) clearInterval(state.pollTimer); state.pollTimer=null; }
+function startTicker(){ stopTicker(); state.tickTimer = setInterval(tick, 250); }
+function stopTicker(){ if(state.tickTimer) clearInterval(state.tickTimer); state.tickTimer=null; }
+
+function autoAdvance(){
+  const s = state.session; if(!s || state.role!=='team') return;
+  if(state.screen==='team-wait' && s.phase==='round'){ state.screen='team-round'; }
+  if((state.screen==='team-wait'||state.screen==='team-round') && s.phase==='ended'){ state.screen='team-ended'; }
+}
+
+function roundRemainingMs(){
+  const s = state.session;
+  if(!s || !s.roundStartedAt) return s ? s.roundDurationMs : 0;
+  return Math.max(0, s.roundDurationMs - (Date.now()-s.roundStartedAt));
+}
+
+function tick(){
+  if(state.screen==='host-round'){
+    const rem = roundRemainingMs();
+    if(rem<=0 && state.session && state.session.phase==='round' && !state.autoEndTriggered){
+      state.autoEndTriggered = true;
+      handleEndRoundNow();
+      return;
+    }
+  }
+  render();
+}
+
+// ---------- render ----------
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = topbar() + '<div class="screen">' + screenHTML() + '</div>';
+  afterRender();
+}
+function topbar(){
+  return `<div class="topbar">
+    <div class="brand">blueprint<span class="dot">•</span>round</div>
+    ${state.session ? `<span class="pill ${state.session.phase==='round'?'live':''}">${state.role==='host'?'Hosting':'Playing'} · ${state.code}</span>` : ''}
+  </div>`;
+}
+function screenHTML(){
+  switch(state.screen){
+    case 'landing': return landingScreen();
+    case 'host-problems': return hostProblemsScreen();
+    case 'host-timer': return hostTimerScreen();
+    case 'host-lobby': return hostLobbyScreen();
+    case 'host-round': return hostRoundScreen();
+    case 'host-ended': return hostEndedScreen();
+    case 'team-join': return teamJoinScreen();
+    case 'team-wait': return teamWaitScreen();
+    case 'team-round': return teamRoundScreen();
+    case 'team-problem': return teamProblemScreen();
+    case 'team-ended': return teamEndedScreen();
+    default: return landingScreen();
+  }
+}
+
+function landingScreen(){
+  return `
+  <div class="landing-hero">
+    <div class="eyebrow">IoTVerse · Round 1</div>
+    <h1>Design the chain.<br><span class="accent" style="color:var(--amber);">Beat the clock.</span></h1>
+    <p>Pick the right sensor, choose your connectivity, and lay out the pipeline: Sensor → Connectivity → Cloud → Data → Action. Every design is scored live against the judging rubric.</p>
+  </div>
+  <div class="role-grid">
+    <div class="role-card" data-action="go-host">
+      <div class="tag">Run a round</div>
+      <h3>Host</h3>
+      <p>Pick which problems to include, set the round timer, and put a QR code on the big screen.</p>
+    </div>
+    <div class="role-card" data-action="go-team-join">
+      <div class="tag">Join a round</div>
+      <h3>Team</h3>
+      <p>Scan the host's QR code or enter the 4-digit code to build your chains from your own device.</p>
+    </div>
+  </div>
+  ${state.error ? `<p style="color:var(--coral);text-align:center;margin-top:18px;">${state.error}</p>`:''}
+  `;
+}
+
+// ---------- HOST: pick problems ----------
+function hostProblemsScreen(){
+  const sel = state.draftProblemIds;
+  return `
+  <div class="eyebrow">Step 1 of 2</div>
+  <h2 style="margin-bottom:6px;">Choose problems for this round</h2>
+  <p style="color:var(--slate);margin:0 0 18px;">${sel.length} selected</p>
+  <div class="row" style="margin-bottom:14px;">
+    <button class="btn-ghost btn btn-sm" data-action="select-all-problems">Select all 8</button>
+    <button class="btn-ghost btn btn-sm" data-action="clear-problems">Clear</button>
+  </div>
+  ${PROBLEMS.map(p=>`
+    <div class="problem-check ${sel.includes(p.id)?'on':''}" data-action="toggle-problem" data-id="${p.id}">
+      <div class="box">${sel.includes(p.id)?'✓':''}</div>
+      <div>
+        <h4>${p.id}. ${escapeHtml(p.title)}</h4>
+        <p>${escapeHtml(p.card)}</p>
+      </div>
+    </div>
+  `).join('')}
+  <div class="divider"></div>
+  <button class="btn btn-cyan" data-action="go-host-timer" ${sel.length===0?'disabled':''}>Continue →</button>
+  `;
+}
+
+function hostTimerScreen(){
+  return `
+  <div class="eyebrow">Step 2 of 2</div>
+  <h2 style="margin-bottom:18px;">Set the round timer</h2>
+  <div class="card" style="max-width:360px;">
+    <div class="field">
+      <label>Minutes for the whole round</label>
+      <input type="number" id="roundMinutes" min="1" max="120" value="${state.draftMinutes}">
+    </div>
+    <p class="footnote" style="color:var(--slate);font-size:13px;">All teams share this countdown. They can attempt problems in any order and submit each one whenever ready — until the clock runs out.</p>
+  </div>
+  <div class="divider"></div>
+  <div class="row">
+    <button class="btn-ghost btn" data-action="back-to-problems">← Back</button>
+    <button class="btn btn-cyan" data-action="open-lobby">Open Lobby &amp; Show QR →</button>
+  </div>
+  `;
+}
+
+// ---------- HOST: lobby ----------
+function hostLobbyScreen(){
+  const s = state.session;
+  const teamIds = Object.keys(s.teams);
+  return `
+  <div class="row" style="align-items:flex-start;gap:26px;">
+    <div class="card center" style="flex:1;min-width:250px;">
+      <div class="eyebrow">Scan to join</div>
+      <div id="qrHolder" class="qr-box"></div>
+      <div style="margin-top:14px;" class="code-display">${state.code}</div>
+      <p style="color:var(--slate);font-size:13px;">Or open this page and enter the code above.</p>
+    </div>
+    <div class="card" style="flex:1.3;min-width:250px;">
+      <div class="eyebrow">Teams in the room</div>
+      <h2 style="margin-bottom:14px;">${teamIds.length} joined</h2>
+      ${teamIds.length ? teamIds.map(id=>`<span class="team-chip">${escapeHtml(s.teams[id])}</span>`).join('') : `<div class="empty">Waiting for teams to scan in…</div>`}
+      <div class="divider"></div>
+      <p style="color:var(--slate);font-size:13px;">${s.problemIds.length} problem${s.problemIds.length===1?'':'s'} loaded · ${s.roundDurationMs/60000} min round · each team starts with a shared 100 IoT-Coin budget</p>
+      <button class="btn btn-block" style="margin-top:14px;" data-action="start-round" ${teamIds.length===0?'disabled':''}>Start Round →</button>
+      ${teamIds.length===0 ? `<p style="color:var(--slate);font-size:12.5px;margin-top:6px;">At least one team must join first.</p>`:''}
+    </div>
+  </div>
+  `;
+}
+
+// ---------- HOST: round ----------
+function hostRoundScreen(){
+  const s = state.session;
+  const rem = roundRemainingMs();
+  const frac = rem / s.roundDurationMs;
+  const color = frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)');
+  const teamIds = Object.keys(s.teams);
+  const totalProblems = s.problemIds.length;
+  return `
+  <div class="card center" style="margin-bottom:20px;">
+    <div class="eyebrow">Time remaining</div>
+    <div class="mono" style="font-size:56px;color:${color};font-weight:700;">${fmt(rem)}</div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Live progress</div>
+    <table><thead><tr><th>Team</th><th>Submitted</th><th>IoT-Coins left</th><th>Score</th></tr></thead><tbody>
+      ${teamIds.map(id=>{
+        const subs = (s.submissions[id]||{});
+        const done = Object.keys(subs).length;
+        const wallet = s.wallets[id] || {remaining:100};
+        return `<tr><td>${escapeHtml(s.teams[id])}</td><td>${done} / ${totalProblems}</td><td class="mono" style="color:${wallet.remaining<0?'var(--coral)':'var(--paper)'};">${wallet.remaining}</td><td class="pts">${s.scores[id]||0}</td></tr>`;
+      }).join('')}
+    </tbody></table>
+  </div>
+  <div class="divider"></div>
+  <button class="btn btn-coral" data-action="end-round-now">End Round Now</button>
+  `;
+}
+
+function hostEndedScreen(){
+  const s = state.session;
+  return `
+  <div class="status-banner">
+    <div class="eyebrow">Round complete</div>
+    <h2>Final leaderboard</h2>
+  </div>
+  <div class="card">${leaderboardHTML(s)}</div>
+  <div class="center" style="margin-top:22px;">
+    <button class="btn-ghost btn" data-action="reset">Start a New Round</button>
+  </div>
+  `;
+}
+
+function leaderboardHTML(s){
+  const ids = Object.keys(s.teams);
+  if(ids.length===0) return `<div class="empty">No teams yet.</div>`;
+  const ranked = ids.map(id=>({id,name:s.teams[id],score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  return ranked.map((r,i)=>`
+    <div class="lead-row">
+      <div class="lead-rank ${i===0?'gold':''}">${i+1}</div>
+      <div class="lead-name">${escapeHtml(r.name)}</div>
+      <div class="lead-score">${r.score} pts</div>
+    </div>`).join('');
+}
+
+// ---------- TEAM: join ----------
+function teamJoinScreen(){
+  return `
+  <div class="card" style="max-width:420px;margin:0 auto;">
+    <div class="eyebrow">Join a round</div>
+    <h2 style="margin-bottom:18px;">Enter the room code</h2>
+    <div class="field"><label>Session code</label><input type="text" id="joinCode" maxlength="4" placeholder="1234" value="${escapeHtml(state.code||'')}"></div>
+    <div class="field"><label>Team name</label><input type="text" id="joinName" placeholder="e.g. The Signal Chasers"></div>
+    <button class="btn btn-block" data-action="join-session">Join →</button>
+    ${state.error ? `<p style="color:var(--coral);">${state.error}</p>`:''}
+  </div>`;
+}
+
+function teamWaitScreen(){
+  const s = state.session;
+  return `<div class="status-banner">
+    <div class="eyebrow">You're in</div>
+    <h2>${escapeHtml(state.teamName)}, get ready</h2>
+    <p>Waiting for the host to start the round — ${s.problemIds.length} problem${s.problemIds.length===1?'':'s'} loaded.</p>
+  </div>`;
+}
+
+function teamRoundScreen(){
+  const s = state.session;
+  const rem = roundRemainingMs();
+  const frac = rem / s.roundDurationMs;
+  const color = frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)');
+  const subs = s.submissions[state.teamId] || {};
+  const myScore = s.scores[state.teamId] || 0;
+  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+  return `
+  <div class="timebar-wrap">
+    <div class="timebar-track"><div class="timebar-fill" style="width:${Math.max(0,frac*100)}%;background:${color};"></div></div>
+    <div class="timebar-txt" style="color:${color};">${fmt(rem)}</div>
+  </div>
+  <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <h2>Your problems</h2>
+    <div class="row" style="gap:8px;">
+      <span class="pill" style="background:${wallet.remaining<0?'rgba(255,92,92,0.15)':'rgba(255,176,32,0.15)'};color:${wallet.remaining<0?'var(--coral)':'var(--amber)'};">💰 ${wallet.remaining} / 100 IoT-Coins</span>
+      <span class="pill live">Score: ${myScore}</span>
+    </div>
+  </div>
+  <div class="tile-grid">
+    ${s.problemIds.map(pid=>{
+      const p = PROBLEMS.find(x=>x.id===pid);
+      const done = subs[pid];
+      return `<div class="ptile ${done?'done':''}" data-action="open-problem" data-id="${pid}">
+        <div class="pnum">Problem ${pid}</div>
+        <h4>${escapeHtml(p.title)}</h4>
+        <div class="pstatus">${done ? 'Submitted · '+done.total+'/30' : 'Not started'}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  `;
+}
+
+// ---------- TEAM: problem workspace ----------
+function teamProblemScreen(){
+  const s = state.session;
+  const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+  const existing = (s.submissions[state.teamId]||{})[problem.id];
+  const rem = roundRemainingMs();
+  const timeUp = rem<=0 || s.phase==='ended';
+
+  if(existing && !state.editingProblem){
+    return resultView(problem, existing, timeUp);
+  }
+  return builderView(problem, timeUp, s);
+}
+
+function resultView(problem, r, timeUp){
+  return `
+  <button class="btn-ghost btn btn-sm" data-action="back-to-problems" style="margin-bottom:16px;">← Back to problems</button>
+  <div class="card" style="margin-bottom:18px;"><div class="eyebrow">Problem ${problem.id}</div><h2>${escapeHtml(problem.title)}</h2><p class="scenario">"${escapeHtml(problem.card)}"</p></div>
+  <div class="card">
+    <div class="breakdown-row">
+      <div><div class="bl">Sensor — ${escapeHtml(r.sensorLabel)}</div><div class="bd">Accepted: ${problem.correctSensors.join(' or ')}</div></div>
+      <div class="bp ${r.sensorPts===0?'zero':''}">+${r.sensorPts}/10</div>
+    </div>
+    <div class="breakdown-row">
+      <div><div class="bl">Connectivity — ${escapeHtml(r.connLabel)} <span class="badge-v ${r.connValidity}">${r.connValidity}</span></div><div class="bd">${escapeHtml(r.connReason)}</div></div>
+      <div class="bp ${r.connPts===0?'zero':''}">+${r.connPts}/10</div>
+    </div>
+    <div class="breakdown-row">
+      <div><div class="bl">Budget — this design cost ${r.coinCost} IoT-Coins</div><div class="bd">Connectivity base cost${r.connValidity==='acceptable'?' + trade-off penalty':''}. Running total after this problem: <strong style="color:${r.runningAfter>100?'var(--coral)':'var(--paper)'};">${r.runningAfter} / 100</strong></div></div>
+      <div class="bp ${r.budgetPts===0?'zero':''}">+${r.budgetPts}/5</div>
+    </div>
+    <div class="breakdown-row">
+      <div><div class="bl">Chain order</div><div class="bd">Sensor → Connectivity → Cloud → Data → Action${r.chainPts===0?' — not in the right sequence':''}</div></div>
+      <div class="bp ${r.chainPts===0?'zero':''}">+${r.chainPts}/5</div>
+    </div>
+  </div>
+  <div class="card center" style="margin-top:16px;">
+    <div class="eyebrow">Total</div>
+    <div class="mono" style="font-size:38px;color:var(--cyan);font-weight:700;">${r.total} / 30</div>
+  </div>
+  ${!timeUp ? `<div class="center" style="margin-top:18px;"><button class="btn-ghost btn" data-action="edit-problem">Edit Design</button></div>` : `<p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">Round has ended — designs are locked.</p>`}
+  `;
+}
+
+function builderView(problem, timeUp, s){
+  const d = state.draft;
+  const bothChosen = d.sensor && d.connKey;
+  const filledSlots = state.chainSeqIds.length;
+  const chipById = id => state.chainPoolFull.find(c=>c.id===id);
+  const poolChips = state.chainPoolFull.filter(c=>!state.chainSeqIds.includes(c.id));
+
+  const existingCostForThisProblem = ((s.submissions[state.teamId]||{})[problem.id]||{}).coinCost || 0;
+  const walletBefore = (s.wallets[state.teamId]||{spent:0}).spent - existingCostForThisProblem;
+  let costPreview = '';
+  if(d.connKey){
+    const connOpt = problem.connectivity.find(c=>c.key===d.connKey);
+    const cost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
+    const projected = walletBefore + cost;
+    const over = projected > 100;
+    costPreview = `<p style="margin:10px 0 0;font-size:13px;color:${over?'var(--coral)':'var(--slate)'};">
+      This choice costs <strong style="color:${over?'var(--coral)':'var(--amber)'};">${cost} IoT-Coins</strong>.
+      Projected total spend across your submitted problems: <strong>${projected} / 100</strong>${over?' — over budget, this design will lose the 5 budget points':''}.
+    </p>`;
+  }
+
+  return `
+  <button class="btn-ghost btn btn-sm" data-action="back-to-problems" style="margin-bottom:16px;">← Back to problems</button>
+  <div class="card" style="margin-bottom:18px;"><div class="eyebrow">Problem ${problem.id}</div><h2>${escapeHtml(problem.title)}</h2><p class="scenario">"${escapeHtml(problem.card)}"</p></div>
+
+  ${timeUp ? `<div class="card center"><p style="color:var(--coral);margin:0;">Time's up — this design can no longer be submitted.</p></div>` : `
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="eyebrow">Step 1 — Choose your sensor</div>
+    <div class="opt-grid" style="margin-top:12px;">
+      ${problem.sensorOptions.map(o=>`
+        <button class="selopt ${d.sensor && d.sensor.label===o.label ?'sel':''}" data-action="pick-sensor" data-label="${escapeHtml(o.label)}">
+          <span class="em">${o.emoji}</span><span>${escapeHtml(o.label)}</span>
+        </button>`).join('')}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="eyebrow">Step 2 — Choose your connectivity</div>
+    <div class="opt-grid" style="margin-top:12px;">
+      ${problem.connectivity.map(c=>`
+        <button class="selopt ${d.connKey===c.key?'sel':''}" data-action="pick-conn" data-key="${c.key}">
+          <span class="em">${c.emoji}</span><span>${escapeHtml(c.label)}</span><span class="costbadge">${c.baseCost} coins</span>
+        </button>`).join('')}
+    </div>
+    ${costPreview}
+  </div>
+
+  ${bothChosen ? `
+  <div class="card">
+    <div class="eyebrow">Step 3 — Arrange the pipeline</div>
+    <div class="chainzone">
+      <div class="slots">
+        ${[0,1,2,3,4].map(i=>{
+          const id = state.chainSeqIds[i];
+          const chip = id? chipById(id): null;
+          return `<div class="slot ${chip?'filled':''}">${chip? chip.emoji+' '+escapeHtml(chip.label) : (i+1)}</div>`;
+        }).join('')}
+      </div>
+      <div class="pool">
+        ${poolChips.map(c=>`<button class="chip" data-action="add-chip" data-id="${c.id}">${c.emoji} ${escapeHtml(c.label)}</button>`).join('')}
+      </div>
+      ${filledSlots>0 ? `<div style="margin-top:14px;"><button class="btn-ghost btn btn-sm" data-action="reset-chain">Reset Order</button></div>` : ''}
+    </div>
+  </div>` : `<div class="empty">Pick a sensor and a connectivity option to unlock the pipeline builder.</div>`}
+
+  <div class="divider"></div>
+  <button class="btn btn-cyan" data-action="submit-design" ${(!bothChosen || filledSlots<5)?'disabled':''}>Submit Design →</button>
+  `}
+  `;
+}
+
+function teamEndedScreen(){
+  const s = state.session;
+  const ids = Object.keys(s.teams);
+  const ranked = ids.map(id=>({id,score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  const myRank = ranked.findIndex(r=>r.id===state.teamId)+1;
+  return `
+  <div class="status-banner">
+    <div class="eyebrow">Round complete</div>
+    <h2>${escapeHtml(state.teamName)} finished #${myRank||'-'}</h2>
+  </div>
+  <div class="card">${leaderboardHTML(s)}</div>
+  `;
+}
+
+// ---------- side effects ----------
+function afterRender(){
+  if(state.screen==='host-lobby'){
+    const holder = document.getElementById('qrHolder');
+    if(holder && window.QRCode){
+      holder.innerHTML='';
+      const joinUrl = location.origin + location.pathname + '?session=' + state.code;
+      new QRCode(holder, {text:joinUrl, width:180, height:180, colorDark:'#0F1420', colorLight:'#F3F1EA'});
+    }
+  }
+  const needsTick = ['host-round','team-round','team-problem'].includes(state.screen);
+  if(needsTick) startTicker(); else stopTicker();
+}
+
+// ---------- scoring ----------
+function computeChainPool(problem){
+  const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
+  const chips = [
+    {id:'sensor', type:'sensor', label:state.draft.sensor.label, emoji:state.draft.sensor.emoji},
+    {id:'conn', type:'connectivity', label:connOpt.label, emoji:connOpt.emoji},
+    {id:'cloud', type:'cloud', label:'Cloud', emoji:'☁️'},
+    {id:'data', type:'data', label:problem.dataLabel, emoji:'📊'},
+    {id:'action', type:'action', label:problem.actionLabel, emoji:problem.actionEmoji}
+  ];
+  state.chainPoolFull = shuffle(chips);
+  state.chainSeqIds = [];
+}
+
+// ---------- IoT-Coin budget ----------
+// Recomputes each submission's budget score and the team's wallet by walking
+// the round's problems in canonical order and accumulating coin spend.
+// A design only earns its 5 budget points if the team's running total is
+// still within the shared 100 IoT-Coin allowance at that point.
+function recomputeTeamBudget(teamId, s){
+  let running = 0;
+  const mySubs = s.submissions[teamId] || {};
+  for(const pid of s.problemIds){
+    const sub = mySubs[pid];
+    if(!sub) continue;
+    running += sub.coinCost;
+    sub.budgetPts = running<=100 ? 5 : 0;
+    sub.runningAfter = running;
+    sub.total = sub.sensorPts + sub.connPts + sub.budgetPts + sub.chainPts;
+  }
+  s.wallets[teamId] = {spent: running, remaining: 100 - running};
+  s.scores[teamId] = Object.values(mySubs).reduce((sum,r)=>sum+r.total,0);
+}
+
+// ---------- actions ----------
+async function handleAddQuestionNoop(){}
+
+async function handleOpenLobby(){
+  const minutesInput = document.getElementById('roundMinutes');
+  const minutes = minutesInput ? Math.max(1, parseInt(minutesInput.value,10)||20) : state.draftMinutes;
+  state.draftMinutes = minutes;
+  const session = {
+    createdAt: Date.now(),
+    phase: 'lobby',
+    problemIds: state.draftProblemIds.slice(),
+    roundDurationMs: minutes*60000,
+    roundStartedAt: null,
+    teams:{}, scores:{}, submissions:{}, wallets:{}
+  };
+  await saveSession(state.code, session);
+  state.session = session;
+  state.screen = 'host-lobby';
+  startPolling();
+  render();
+}
+
+async function handleStartRound(){
+  const s = await loadSession(state.code) || state.session;
+  s.phase='round'; s.roundStartedAt=Date.now();
+  await saveSession(state.code, s);
+  state.session = s; state.autoEndTriggered=false;
+  state.screen='host-round';
+  render();
+}
+
+async function handleEndRoundNow(){
+  const s = await loadSession(state.code) || state.session;
+  s.phase='ended';
+  await saveSession(state.code, s);
+  state.session = s;
+  if(state.role==='host') state.screen='host-ended';
+  render();
+}
+
+async function handleJoinSession(){
+  const code = document.getElementById('joinCode').value.trim();
+  const name = document.getElementById('joinName').value.trim();
+  if(!/^[0-9]{4}$/.test(code)){ state.error='Enter a valid 4-digit code.'; render(); return; }
+  if(!name){ state.error='Enter a team name.'; render(); return; }
+  const s = await loadSession(code);
+  if(!s){ state.error='No session found with that code.'; render(); return; }
+  state.error='';
+  const teamId = randId();
+  s.teams[teamId]=name; s.scores[teamId]=0;
+  s.wallets[teamId] = {spent:0, remaining:100};
+  await saveSession(code, s);
+  state.code=code; state.session=s; state.teamId=teamId; state.teamName=name; state.role='team';
+  state.screen = s.phase==='round' ? 'team-round' : (s.phase==='ended' ? 'team-ended' : 'team-wait');
+  startPolling();
+  render();
+}
+
+async function handleSubmitDesign(){
+  const s = await loadSession(state.code) || state.session;
+  if(s.phase==='ended'){ state.session=s; state.screen='team-round'; render(); return; }
+  const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+  const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
+  const sensorPts = problem.correctSensors.includes(state.draft.sensor.label) ? 10 : 0;
+  const connPts = connOpt.points;
+  const coinCost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
+  const chosenTypes = state.chainSeqIds.map(id => state.chainPoolFull.find(c=>c.id===id).type);
+  const chainCorrect = JSON.stringify(chosenTypes) === JSON.stringify(CHAIN_TYPES);
+  const chainPts = chainCorrect ? 5 : 0;
+
+  const result = {
+    sensorLabel: state.draft.sensor.label, sensorPts,
+    connLabel: connOpt.label, connValidity: connOpt.validity, connPts, connReason: connOpt.reason,
+    coinCost, budgetPts:0, runningAfter:0, chainPts, total:0
+  };
+
+  if(!s.submissions[state.teamId]) s.submissions[state.teamId] = {};
+  s.submissions[state.teamId][problem.id] = result;
+  recomputeTeamBudget(state.teamId, s);
+  await saveSession(state.code, s);
+  state.session = s;
+  state.editingProblem = false;
+  render();
+}
+
+// ---------- click delegation ----------
+document.addEventListener('click', async (e)=>{
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.getAttribute('data-action');
+
+  if(action==='go-host'){
+    state.role='host'; state.code=randCode();
+    state.draftProblemIds=[]; state.draftMinutes=20;
+    state.screen='host-problems'; render();
+  }
+  else if(action==='go-team-join'){ state.role='team'; state.screen='team-join'; render(); }
+  else if(action==='toggle-problem'){
+    const id = parseInt(el.getAttribute('data-id'),10);
+    const i = state.draftProblemIds.indexOf(id);
+    if(i>=0) state.draftProblemIds.splice(i,1); else state.draftProblemIds.push(id);
+    render();
+  }
+  else if(action==='select-all-problems'){ state.draftProblemIds = PROBLEMS.map(p=>p.id); render(); }
+  else if(action==='clear-problems'){ state.draftProblemIds=[]; render(); }
+  else if(action==='go-host-timer'){ state.screen='host-timer'; render(); }
+  else if(action==='back-to-problems' && state.role==='host'){ state.screen='host-problems'; render(); }
+  else if(action==='back-to-problems' && state.role==='team'){
+    const s = await loadSession(state.code); if(s) state.session=s;
+    state.screen = (state.session.phase==='ended') ? 'team-ended' : 'team-round';
+    render();
+  }
+  else if(action==='open-lobby') handleOpenLobby();
+  else if(action==='start-round') handleStartRound();
+  else if(action==='end-round-now') handleEndRoundNow();
+  else if(action==='join-session') handleJoinSession();
+  else if(action==='open-problem'){
+    state.currentProblemId = parseInt(el.getAttribute('data-id'),10);
+    state.editingProblem = false;
+    state.draft = {sensor:null, connKey:null};
+    state.chainPoolFull=[]; state.chainSeqIds=[];
+    state.screen='team-problem'; render();
+  }
+  else if(action==='edit-problem'){
+    const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+    const existing = (state.session.submissions[state.teamId]||{})[problem.id];
+    if(existing){
+      const sensorObj = problem.sensorOptions.find(o=>o.label===existing.sensorLabel) || {label:existing.sensorLabel, emoji:'🔧'};
+      const connOpt = problem.connectivity.find(c=>c.label===existing.connLabel);
+      state.draft = {sensor:sensorObj, connKey: connOpt?connOpt.key:null};
+      computeChainPool(problem);
+    }
+    state.editingProblem = true; render();
+  }
+  else if(action==='pick-sensor'){
+    const label = el.getAttribute('data-label');
+    const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+    const opt = problem.sensorOptions.find(o=>o.label===label);
+    state.draft.sensor = opt;
+    if(state.draft.connKey) computeChainPool(problem);
+    render();
+  }
+  else if(action==='pick-conn'){
+    const key = el.getAttribute('data-key');
+    state.draft.connKey = key;
+    const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
+    if(state.draft.sensor) computeChainPool(problem);
+    render();
+  }
+  else if(action==='add-chip'){
+    const id = el.getAttribute('data-id');
+    if(!state.chainSeqIds.includes(id) && state.chainSeqIds.length<5) state.chainSeqIds.push(id);
+    render();
+  }
+  else if(action==='reset-chain'){ state.chainSeqIds=[]; render(); }
+  else if(action==='submit-design') handleSubmitDesign();
+  else if(action==='reset'){
+    stopPolling(); stopTicker();
+    Object.assign(state, {
+      role:null, screen:'landing', code:null, session:null, teamId:null, teamName:null,
+      draftProblemIds:[], draftMinutes:20, currentProblemId:null, editingProblem:false,
+      draft:{sensor:null,connKey:null}, chainPoolFull:[], chainSeqIds:[], autoEndTriggered:false, error:''
+    });
+    render();
+  }
+});
+
+// ---------- init ----------
+(function init(){
+  const params = new URLSearchParams(location.search);
+  const sess = params.get('session');
+  if(sess && /^[0-9]{4}$/.test(sess)){
+    state.code = sess; state.role='team'; state.screen='team-join';
+  }
+  render();
+})();
+</script>
+</body>
+</html>
