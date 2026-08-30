@@ -169,7 +169,7 @@ const PROBLEMS = [
     connectivity:[
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Long range, low power — perfect for city-wide drain sensors."},
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if near city infrastructure, but limited range and higher power use."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"High bandwidth, but expensive operational cost for simple water sensors."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"High bandwidth, but expensive operational cost for simple water sensors."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range is too short (<10m) for underground city drainage networks."}
     ],
     dataLabel:"Water level rising", actionLabel:"Alert Municipal Team", actionEmoji:"🚨"
@@ -187,7 +187,7 @@ const PROBLEMS = [
     connectivity:[
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed indoor location, always-on reliability suits critical monitoring."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Short-range single-room monitoring works equally well here."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary operational cost for a fixed indoor sensor."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary operational cost for a fixed indoor sensor."},
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Built for wide-area outdoor spread, not a single indoor generator."}
     ],
     dataLabel:"Fuel below 20%", actionLabel:"Alert Maintenance Staff", actionEmoji:"🚨"
@@ -203,7 +203,7 @@ const PROBLEMS = [
     ],
     correctSensors:["GPS/Location Sensor","Motion Sensor"],
     connectivity:[
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"optimal", points:10, penalty:0, reason:"Bike is moving, needs continuous wide-area real-time tracking."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"optimal", points:10, penalty:0, reason:"Bike is moving, needs continuous wide-area real-time tracking."},
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Only works while bike is within campus Wi-Fi range, fails once it leaves."},
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Long range works, but not ideal for real-time continuous tracking."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Far too short range for tracking a moving bike across campus."}
@@ -223,7 +223,7 @@ const PROBLEMS = [
     connectivity:[
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Bins spread across city, infrequent low-power updates fit perfectly."},
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if bins are within city Wi-Fi coverage, but not built for scattered outdoor use."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"Works but unnecessarily expensive for infrequent fill-level updates."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works but unnecessarily expensive for infrequent fill-level updates."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too short for city-wide spread bins."}
     ],
     dataLabel:"Bin at 90% full", actionLabel:"Schedule Collection", actionEmoji:"🚛"
@@ -242,7 +242,7 @@ const PROBLEMS = [
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed building infrastructure, moderate range is exactly enough."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"acceptable", points:7, penalty:5, reason:"Works for a single unit/floor, not the whole complex."},
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Works but overkill unless the complex is unusually large/spread out."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost/complexity for a fixed indoor plumbing sensor."}
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost/complexity for a fixed indoor plumbing sensor."}
     ],
     dataLabel:"Unusual flow detected at 2AM", actionLabel:"Alert Facility Manager", actionEmoji:"🚨"
   },
@@ -259,7 +259,7 @@ const PROBLEMS = [
     connectivity:[
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Local automation, no need for high bandwidth or wide range."},
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Works for a city-wide streetlight network, though Wi-Fi is simpler here."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost for simple on/off automation."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost for simple on/off automation."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too limited to connect streetlights to a central system."}
     ],
     dataLabel:"Daylight detected", actionLabel:"Lights OFF", actionEmoji:"💡"
@@ -277,7 +277,7 @@ const PROBLEMS = [
     connectivity:[
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Outdoor monitoring stations spread across a zone, low power."},
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if stations are within existing Wi-Fi coverage."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"acceptable", points:7, penalty:15, reason:"Works but costly for periodic AQI readings."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works but costly for periodic AQI readings."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for outdoor zone-wide monitoring."}
     ],
     dataLabel:"AQI above safe threshold", actionLabel:"Public Alert Notification", actionEmoji:"🚨"
@@ -295,7 +295,7 @@ const PROBLEMS = [
     connectivity:[
       {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Farms spread out, infrequent low-power readings fit perfectly."},
       {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works only if fields are within existing Wi-Fi coverage."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:30, validity:"incorrect", points:0, penalty:0, reason:"Unnecessarily expensive for simple periodic soil readings."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Unnecessarily expensive for simple periodic soil readings."},
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for spread-out farmland."}
     ],
     dataLabel:"Moisture below 20%", actionLabel:"Irrigation ON", actionEmoji:"💧"
@@ -830,7 +830,7 @@ function resultView(problem, r, timeUp){
       <div class="bp ${r.budgetPts===0?'zero':''}">+${r.budgetPts}/5</div>
     </div>
     <div class="breakdown-row">
-      <div><div class="bl">Chain order</div><div class="bd">Sensor → Connectivity → Cloud → Data → Action${r.chainPts===0?' — not in the right sequence':''}</div></div>
+      <div><div class="bl">Chain order</div><div class="bd">Sensor → Connectivity → Cloud → Data → Action${r.chainPts<5?` — ${5-r.chainPts} slot${5-r.chainPts===1?'':'s'} out of place`:''}</div></div>
       <div class="bp ${r.chainPts===0?'zero':''}">+${r.chainPts}/5</div>
     </div>
   </div>
@@ -974,14 +974,37 @@ function afterRender(){
 // ---------- scoring ----------
 function computeChainPool(problem){
   const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
-  const chips = [
-    {id:'sensor', type:'sensor', label:state.draft.sensor.label, emoji:state.draft.sensor.emoji},
-    {id:'conn', type:'connectivity', label:connOpt.label, emoji:connOpt.emoji},
-    {id:'cloud', type:'cloud', label:'Cloud', emoji:'☁️'},
-    {id:'data', type:'data', label:problem.dataLabel, emoji:'📊'},
-    {id:'action', type:'action', label:problem.actionLabel, emoji:problem.actionEmoji}
+  const sensorOpt = state.draft.sensor;
+
+  // The one correct chip for each stage — these are the only chips that can
+  // score a point, and only when placed in their matching slot.
+  const correctChips = [
+    {id:'sensor-correct', type:'sensor', label:sensorOpt.label, emoji:sensorOpt.emoji, correct:true},
+    {id:'conn-correct', type:'connectivity', label:connOpt.label, emoji:connOpt.emoji, correct:true},
+    {id:'cloud-correct', type:'cloud', label:'Cloud', emoji:'☁️', correct:true},
+    {id:'data-correct', type:'data', label:problem.dataLabel, emoji:'📊', correct:true},
+    {id:'action-correct', type:'action', label:problem.actionLabel, emoji:problem.actionEmoji, correct:true}
   ];
-  state.chainPoolFull = shuffle(chips);
+
+  // Decoy chips — plausible-looking but wrong choices in each category, so
+  // teams must first pick the RIGHT chip for this scenario, then put it in
+  // the RIGHT slot. A decoy placed anywhere scores 0 for that slot; the
+  // correct chip only scores if it also lands in its correct position.
+  const sensorDecoys = shuffle(problem.sensorOptions.filter(o=>o.label!==sensorOpt.label))
+    .slice(0,2)
+    .map((o,i)=>({id:'sensor-decoy'+i, type:'sensor', label:o.label, emoji:o.emoji, correct:false}));
+
+  const connDecoys = shuffle(problem.connectivity.filter(c=>c.key!==connOpt.key))
+    .slice(0,2)
+    .map((c,i)=>({id:'conn-decoy'+i, type:'connectivity', label:c.label, emoji:c.emoji, correct:false}));
+
+  const otherProblems = PROBLEMS.filter(p=>p.id!==problem.id);
+  const dataDecoys = shuffle(otherProblems).slice(0,2)
+    .map((p,i)=>({id:'data-decoy'+i, type:'data', label:p.dataLabel, emoji:'📊', correct:false}));
+  const actionDecoys = shuffle(otherProblems).slice(0,2)
+    .map((p,i)=>({id:'action-decoy'+i, type:'action', label:p.actionLabel, emoji:p.actionEmoji, correct:false}));
+
+  state.chainPoolFull = shuffle([...correctChips, ...sensorDecoys, ...connDecoys, ...dataDecoys, ...actionDecoys]);
   state.chainSeqIds = [];
 }
 
@@ -1168,9 +1191,16 @@ async function handleSubmitDesign(){
     return;
   }
 
-  const chosenTypes = state.chainSeqIds.map(id => state.chainPoolFull.find(c=>c.id===id).type);
-  const chainCorrect = JSON.stringify(chosenTypes) === JSON.stringify(CHAIN_TYPES);
-  const chainPts = chainCorrect ? 5 : 0;
+  const chosenChips = state.chainSeqIds.map(id => state.chainPoolFull.find(c=>c.id===id));
+  // Award 1 point per slot that holds BOTH the right chip (not a decoy) AND
+  // the right position for that chip. A decoy in any slot scores 0 for that
+  // slot; the correct chip out of position also scores 0 for that slot —
+  // only the other, correctly-placed slots keep their points.
+  const chainPts = CHAIN_TYPES.reduce((pts, type, i) => {
+    const chip = chosenChips[i];
+    return pts + (chip && chip.correct && chip.type === type ? 1 : 0);
+  }, 0);
+  const chainCorrect = chainPts === CHAIN_TYPES.length;
 
   const result = {
     sensorLabel: state.draft.sensor.label, sensorPts,
