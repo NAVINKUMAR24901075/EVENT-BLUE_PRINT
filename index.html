@@ -986,22 +986,20 @@ function computeChainPool(problem){
     {id:'action-correct', type:'action', label:problem.actionLabel, emoji:problem.actionEmoji, correct:true}
   ];
 
-  // Decoy chips — plausible-looking but wrong choices in each category, so
+  // Decoy chips — every other option in each category is added as a decoy, so
   // teams must first pick the RIGHT chip for this scenario, then put it in
   // the RIGHT slot. A decoy placed anywhere scores 0 for that slot; the
   // correct chip only scores if it also lands in its correct position.
-  const sensorDecoys = shuffle(problem.sensorOptions.filter(o=>o.label!==sensorOpt.label))
-    .slice(0,2)
+  const sensorDecoys = problem.sensorOptions.filter(o=>o.label!==sensorOpt.label)
     .map((o,i)=>({id:'sensor-decoy'+i, type:'sensor', label:o.label, emoji:o.emoji, correct:false}));
 
-  const connDecoys = shuffle(problem.connectivity.filter(c=>c.key!==connOpt.key))
-    .slice(0,2)
+  const connDecoys = problem.connectivity.filter(c=>c.key!==connOpt.key)
     .map((c,i)=>({id:'conn-decoy'+i, type:'connectivity', label:c.label, emoji:c.emoji, correct:false}));
 
   const otherProblems = PROBLEMS.filter(p=>p.id!==problem.id);
-  const dataDecoys = shuffle(otherProblems).slice(0,2)
+  const dataDecoys = otherProblems
     .map((p,i)=>({id:'data-decoy'+i, type:'data', label:p.dataLabel, emoji:'📊', correct:false}));
-  const actionDecoys = shuffle(otherProblems).slice(0,2)
+  const actionDecoys = otherProblems
     .map((p,i)=>({id:'action-decoy'+i, type:'action', label:p.actionLabel, emoji:p.actionEmoji, correct:false}));
 
   state.chainPoolFull = shuffle([...correctChips, ...sensorDecoys, ...connDecoys, ...dataDecoys, ...actionDecoys]);
