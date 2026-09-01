@@ -299,10 +299,137 @@ const PROBLEMS = [
       {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for spread-out farmland."}
     ],
     dataLabel:"Moisture below 20%", actionLabel:"Irrigation ON", actionEmoji:"💧"
+  },
+  {
+    id:9, title:"Smart Parking Lot Congestion",
+    card:"Drivers waste 10+ minutes circling a downtown parking lot every day because there's no way to know which spots are free.",
+    sensorOptions:[
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"},
+      {label:"GPS/Location Sensor", emoji:"📍"},
+      {label:"Light/Ambient Sensor", emoji:"💡"}
+    ],
+    correctSensors:["Motion Sensor","Fill-Level/Ultrasonic Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Hundreds of spots spread across a large lot, low-power periodic updates fit perfectly."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if the lot already has Wi-Fi coverage, but not built for scattered sensor arrays."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works but needlessly expensive for a simple occupied/free reading."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too short to cover a lot full of scattered sensors."}
+    ],
+    dataLabel:"Spot occupied", actionLabel:"Update Parking App", actionEmoji:"🅿️"
+  },
+  {
+    id:10, title:"Cold Storage Spoilage",
+    card:"A warehouse lost an entire shipment of vaccines overnight because the cold storage room warmed above the safe limit and nobody noticed in time.",
+    sensorOptions:[
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Water Level Sensor", emoji:"💧"},
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Light/Ambient Sensor", emoji:"💡"}
+    ],
+    correctSensors:["Temperature Sensor"],
+    connectivity:[
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed indoor room, reliable always-on connection suits critical monitoring."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Single-room monitoring works equally well at lower cost."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary cost for a fixed indoor sensor."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Built for wide-area outdoor spread, not a single storage room."}
+    ],
+    dataLabel:"Temp above safe threshold", actionLabel:"Alert Warehouse Staff", actionEmoji:"🚨"
+  },
+  {
+    id:11, title:"Elderly Fall Detection",
+    card:"A care facility needs to know immediately if a resident falls in their room, since a delayed response can be life-threatening.",
+    sensorOptions:[
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"GPS/Location Sensor", emoji:"📍"},
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"Water Flow Sensor", emoji:"💧"}
+    ],
+    correctSensors:["Motion Sensor"],
+    connectivity:[
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Single-room, low-latency detection at the lowest possible cost."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Reliable building-wide connection also suits fast alerting."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary cost for a fixed indoor safety sensor."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Built for wide-area, infrequent readings — too slow for a time-critical fall alert."}
+    ],
+    dataLabel:"Fall pattern detected", actionLabel:"Alert Caregiver", actionEmoji:"🚨"
+  },
+  {
+    id:12, title:"Warehouse Forklift Collisions",
+    card:"Forklifts and workers keep having near-miss collisions in a busy warehouse because nobody can see their real-time positions.",
+    sensorOptions:[
+      {label:"GPS/Location Sensor", emoji:"📍"},
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"},
+      {label:"Temperature Sensor", emoji:"🌡️"}
+    ],
+    correctSensors:["GPS/Location Sensor","Motion Sensor"],
+    connectivity:[
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Indoor beacon-based positioning is precise, fast, and low-cost for this range."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works, but gives coarser indoor positioning than a beacon-based setup."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Not built for precise indoor positioning, and unnecessarily costly."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Update rate is too slow for real-time collision avoidance."}
+    ],
+    dataLabel:"Proximity threshold breached", actionLabel:"Sound Warning Alarm", actionEmoji:"🚨"
+  },
+  {
+    id:13, title:"Solar Panel Efficiency Drop",
+    card:"A solar farm's energy output keeps dropping and the team suspects dust buildup, but manually inspecting hundreds of panels isn't practical.",
+    sensorOptions:[
+      {label:"Light/Ambient Sensor", emoji:"💡"},
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"Water Flow Sensor", emoji:"💧"}
+    ],
+    correctSensors:["Light/Ambient Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Hundreds of panels spread across a large farm, low-power periodic readings fit perfectly."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Only works if the farm already has Wi-Fi coverage end to end."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works but costly for simple periodic light-output readings."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short to cover a spread-out solar farm."}
+    ],
+    dataLabel:"Output below expected for light level", actionLabel:"Schedule Panel Cleaning", actionEmoji:"🧹"
+  },
+  {
+    id:14, title:"School Classroom Air Quality",
+    card:"Students in a poorly ventilated classroom keep reporting headaches and drowsiness, and teachers suspect CO2 buildup.",
+    sensorOptions:[
+      {label:"Air Quality Sensor", emoji:"🌫️"},
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Light/Ambient Sensor", emoji:"💡"},
+      {label:"Motion Sensor", emoji:"👤"}
+    ],
+    correctSensors:["Air Quality Sensor"],
+    connectivity:[
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed single classroom, reliable always-on school network connection."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Single-room monitoring works equally well at lower cost."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary cost for a fixed indoor classroom sensor."},
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Built for wide-area outdoor spread, not a single indoor room."}
+    ],
+    dataLabel:"CO2 above healthy threshold", actionLabel:"Trigger Ventilation Fan", actionEmoji:"🌬️"
+  },
+  {
+    id:15, title:"Livestock Health Monitoring",
+    card:"A dairy farm keeps losing cattle to illnesses that aren't caught until symptoms are already severe.",
+    sensorOptions:[
+      {label:"Temperature Sensor", emoji:"🌡️"},
+      {label:"Motion Sensor", emoji:"👤"},
+      {label:"Water Flow Sensor", emoji:"💧"},
+      {label:"Soil Moisture Sensor", emoji:"🌱"}
+    ],
+    correctSensors:["Temperature Sensor","Motion Sensor"],
+    connectivity:[
+      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Cattle roam a large pasture; a low-power wearable needs exactly this kind of long-range link."},
+      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works on a roaming wearable, but drains battery and costs far more than needed."},
+      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"incorrect", points:0, penalty:0, reason:"Pasture is far larger than any practical Wi-Fi coverage area."},
+      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range is far too short for cattle roaming an open pasture."}
+    ],
+    dataLabel:"Abnormal temperature + reduced activity", actionLabel:"Alert Farm Vet", actionEmoji:"🚨"
   }
 ];
 
 const CHAIN_TYPES = ["sensor","connectivity","cloud","data","action"];
+const TOTAL_BUDGET = 150; // shared IoT-Coin allowance each team starts a round with
 
 // ---------- state ----------
 const state = {
@@ -746,7 +873,7 @@ function hostLobbyScreen(){
       <h2 style="margin-bottom:14px;">${teamIds.length} joined</h2>
       ${teamIds.length ? teamIds.map(id=>`<span class="team-chip">${escapeHtml(s.teams[id])}</span>`).join('') : `<div class="empty">Waiting for teams to scan in…</div>`}
       <div class="divider"></div>
-      <p style="color:var(--slate);font-size:13px;">${s.problemIds.length} problem${s.problemIds.length===1?'':'s'} loaded · ${s.problemDurationMs/1000}s per problem, lockstep · each team starts with a shared 100 IoT-Coin budget</p>
+      <p style="color:var(--slate);font-size:13px;">${s.problemIds.length} problem${s.problemIds.length===1?'':'s'} loaded · ${s.problemDurationMs/1000}s per problem, lockstep · each team starts with a shared ${TOTAL_BUDGET} IoT-Coin budget</p>
       <button class="btn btn-block" style="margin-top:14px;" data-action="start-round" ${teamIds.length===0?'disabled':''}>Start Round →</button>
       ${teamIds.length===0 ? `<p style="color:var(--slate);font-size:12.5px;margin-top:6px;">At least one team must join first.</p>`:''}
     </div>
@@ -780,7 +907,7 @@ function hostQuestionScreen(){
     <table><thead><tr><th>Team</th><th>Submitted</th><th>IoT-Coins left</th><th>Score so far</th></tr></thead><tbody>
       ${teamIds.map(id=>{
         const done = !!(s.submissions[id]||{})[problem.id];
-        const wallet = s.wallets[id] || {remaining:100};
+        const wallet = s.wallets[id] || {remaining:TOTAL_BUDGET};
         return `<tr><td>${escapeHtml(s.teams[id])}</td><td>${done?'✓ Submitted':'…Working'}</td><td class="mono" style="color:${wallet.remaining<0?'var(--coral)':'var(--paper)'};">${wallet.remaining}</td><td class="pts">${s.scores[id]||0}</td></tr>`;
       }).join('')}
     </tbody></table>
@@ -914,7 +1041,7 @@ function teamQuestionScreen(){
   const s = state.session;
   const idx = s.currentProblemIndex;
   const problem = PROBLEMS.find(p=>p.id === s.problemIds[idx]);
-  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+  const wallet = s.wallets[state.teamId] || {spent:0, remaining:TOTAL_BUDGET};
   const rem = questionRemainingMs();
   const timeUp = rem<=0;
   const myScore = s.scores[state.teamId] || 0;
@@ -933,7 +1060,7 @@ function teamQuestionScreen(){
     const over = projected > 100;
     costPreview = `<p style="margin:10px 0 0;font-size:13px;color:${over?'var(--coral)':'var(--slate)'};">
       This choice costs <strong style="color:${over?'var(--coral)':'var(--amber)'};">${cost} IoT-Coins</strong>.
-      Projected total spend so far: <strong>${projected} / 100</strong>${over?' — over budget, this design will lose the 5 budget points':''}.
+      Projected total spend so far: <strong>${projected} / ${TOTAL_BUDGET}</strong>${over?' — over budget, this design will lose the 5 budget points':''}.
     </p>`;
   }
 
@@ -941,7 +1068,7 @@ function teamQuestionScreen(){
   <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
     <span class="pill live">Problem ${idx+1} of ${s.problemIds.length}</span>
     <div class="row" style="gap:8px;">
-      <span class="pill" style="background:${wallet.remaining<0?'rgba(255,92,92,0.15)':'rgba(255,176,32,0.15)'};color:${wallet.remaining<0?'var(--coral)':'var(--amber)'};">💰 ${wallet.remaining} / 100 IoT-Coins</span>
+      <span class="pill" style="background:${wallet.remaining<0?'rgba(255,92,92,0.15)':'rgba(255,176,32,0.15)'};color:${wallet.remaining<0?'var(--coral)':'var(--amber)'};">💰 ${wallet.remaining} / ${TOTAL_BUDGET} IoT-Coins</span>
       <span class="pill live">Score: ${myScore}</span>
     </div>
   </div>
@@ -1036,7 +1163,7 @@ function teamRevealScreen(){
       <div class="bp ${r.connPts===0?'zero':''}">+${r.connPts}/10</div>
     </div>
     <div class="breakdown-row">
-      <div><div class="bl">Budget — this design cost ${r.coinCost} IoT-Coins</div><div class="bd">Connectivity base cost${r.connValidity==='acceptable'?' + trade-off penalty':''}. Running total after this problem: <strong style="color:${r.runningAfter>100?'var(--coral)':'var(--paper)'};">${r.runningAfter} / 100</strong></div></div>
+      <div><div class="bl">Budget — this design cost ${r.coinCost} IoT-Coins</div><div class="bd">Connectivity base cost${r.connValidity==='acceptable'?' + trade-off penalty':''}. Running total after this problem: <strong style="color:${r.runningAfter>TOTAL_BUDGET?'var(--coral)':'var(--paper)'};">${r.runningAfter} / ${TOTAL_BUDGET}</strong></div></div>
       <div class="bp ${r.budgetPts===0?'zero':''}">+${r.budgetPts}/5</div>
     </div>
     <div class="breakdown-row">
@@ -1110,10 +1237,16 @@ function computeChainPool(problem){
   const connDecoys = problem.connectivity.filter(c=>c.key!==connOpt.key)
     .map((c,i)=>({id:'conn-decoy'+i, type:'connectivity', label:c.label, emoji:c.emoji, correct:false}));
 
+  // Data/action decoys are capped at a fixed count, independent of how many
+  // problems are in the bank — with 15 problems now loaded, pulling from
+  // "every other problem" would dump 14 decoys into each category (39 chips
+  // total), which is unusable to sort through. A random sample of a few
+  // other problems keeps the round genuinely confusing without burying it.
+  const DECOY_SAMPLE_SIZE = 5;
   const otherProblems = PROBLEMS.filter(p=>p.id!==problem.id);
-  const dataDecoys = otherProblems
+  const dataDecoys = shuffle(otherProblems).slice(0, DECOY_SAMPLE_SIZE)
     .map((p,i)=>({id:'data-decoy'+i, type:'data', label:p.dataLabel, emoji:'📊', correct:false}));
-  const actionDecoys = otherProblems
+  const actionDecoys = shuffle(otherProblems).slice(0, DECOY_SAMPLE_SIZE)
     .map((p,i)=>({id:'action-decoy'+i, type:'action', label:p.actionLabel, emoji:p.actionEmoji, correct:false}));
 
   state.chainPoolFull = shuffle([...correctChips, ...sensorDecoys, ...connDecoys, ...dataDecoys, ...actionDecoys]);
@@ -1124,7 +1257,7 @@ function computeChainPool(problem){
 // Recomputes each submission's budget score and the team's wallet by walking
 // the round's problems in canonical order and accumulating coin spend.
 // A design only earns its 5 budget points if the team's running total is
-// still within the shared 100 IoT-Coin allowance at that point.
+// still within the shared IoT-Coin allowance (TOTAL_BUDGET) at that point.
 function recomputeTeamBudget(teamId, s){
   let running = 0;
   const mySubs = s.submissions[teamId] || {};
@@ -1132,11 +1265,11 @@ function recomputeTeamBudget(teamId, s){
     const sub = mySubs[pid];
     if(!sub) continue;
     running += sub.coinCost;
-    sub.budgetPts = running<=100 ? 5 : 0;
+    sub.budgetPts = running<=TOTAL_BUDGET ? 5 : 0;
     sub.runningAfter = running;
     sub.total = sub.sensorPts + sub.connPts + sub.budgetPts + sub.chainPts;
   }
-  s.wallets[teamId] = {spent: running, remaining: 100 - running};
+  s.wallets[teamId] = {spent: running, remaining: TOTAL_BUDGET - running};
   s.scores[teamId] = Object.values(mySubs).reduce((sum,r)=>sum+r.total,0);
 }
 
@@ -1293,7 +1426,7 @@ async function handleSubmitDesign(){
     return;
   }
 
-  if(!s.wallets[state.teamId]) s.wallets[state.teamId] = {spent:0, remaining:100};
+  if(!s.wallets[state.teamId]) s.wallets[state.teamId] = {spent:0, remaining:TOTAL_BUDGET};
   const wallet = s.wallets[state.teamId];
 
   const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
@@ -1307,7 +1440,7 @@ async function handleSubmitDesign(){
   const connPts = connOpt.points;
   const coinCost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
 
-  // Never allow the team to spend more than its remaining 100 IoT-Coins.
+  // Never allow the team to spend more than its remaining IoT-Coins (TOTAL_BUDGET total).
   if(coinCost > wallet.remaining){
     state.error=`This design costs ${coinCost} IoT-Coins, but only ${wallet.remaining} remain. Choose a lower-cost connectivity option.`;
     render();
