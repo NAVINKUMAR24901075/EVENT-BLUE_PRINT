@@ -429,7 +429,7 @@ const PROBLEMS = [
 ];
 
 const CHAIN_TYPES = ["sensor","connectivity","cloud","data","action"];
-const TOTAL_BUDGET = 150; // shared IoT-Coin allowance each team starts a round with
+const TOTAL_BUDGET = 200; // shared IoT-Coin allowance each team starts a round with
 
 // ---------- state ----------
 const state = {
@@ -683,6 +683,14 @@ function autoAdvance(){
   const alreadySubmitted = !!mySubs[problem.id];
 
   if(s.phase==='question'){
+    const wallet = s.wallets[state.teamId] || {spent:0, remaining:TOTAL_BUDGET};
+    // Budget's gone — this team can't afford anything else this round, so
+    // automatically move them past the builder to a dedicated "coins over"
+    // screen instead of showing a problem they have no way to attempt.
+    if(wallet.remaining <= 0){
+      state.screen = 'team-budget-over';
+      return;
+    }
     state.screen = alreadySubmitted ? 'team-answered' : 'team-question';
   } else if(s.phase==='reveal'){
     state.screen = 'team-reveal';
@@ -798,6 +806,7 @@ function screenHTML(){
     case 'team-question': return teamQuestionScreen();
     case 'team-answered': return teamAnsweredScreen();
     case 'team-reveal': return teamRevealScreen();
+    case 'team-budget-over': return teamBudgetOverScreen();
     case 'team-ended': return teamEndedScreen();
     default: return landingScreen();
   }
@@ -1195,6 +1204,21 @@ function teamRevealScreen(){
   <h3 style="margin-bottom:10px;">Leaderboard</h3>
   <div class="card">${leaderboardHTML(s)}</div>
   <p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">${isLast? 'Waiting for host to finish the round…' : 'Waiting for the host to start the next problem…'}</p>
+  `;
+}
+
+function teamBudgetOverScreen(){
+  const s = state.session;
+  const ids = Object.keys(s.teams);
+  const ranked = ids.map(id=>({id,score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  const myRank = ranked.findIndex(r=>r.id===state.teamId)+1;
+  return `
+  <div class="status-banner">
+    <div class="eyebrow">Budget exhausted</div>
+    <h2>💸 IoT Coins Over</h2>
+    <p style="margin-top:6px;">${escapeHtml(state.teamName)} has spent the full ${TOTAL_BUDGET}-coin budget and can't afford any more connectivity choices this round. You're currently ranked #${myRank||'-'} — sit back and watch the rest of the round play out below.</p>
+  </div>
+  <div class="card">${leaderboardHTML(s)}</div>
   `;
 }
 
