@@ -533,16 +533,60 @@ function questionRemainingMs(){
   return Math.max(0, s.problemDurationMs - (Date.now()-s.problemStartedAt));
 }
 
+// Ticks fire every 250ms while a countdown is on screen. A full render()
+// tears down and rebuilds the ENTIRE #app DOM tree — doing that 4x/second
+// while someone is mid-click destroys the very button they're pressing,
+// which is why an option used to need 2-3 clicks to register (worse on
+// slower laptops where render() itself takes longer, widening the window).
+// Fix: only patch the timer's own DOM nodes on every tick, and only fall
+// back to a full render() when the screen actually needs to change shape
+// (time running out, which swaps the builder for a "time's up" message).
 function tick(){
+  const s = state.session;
   if(state.screen==='host-question'){
     const rem = questionRemainingMs();
-    if(rem<=0 && state.session && state.session.phase==='question' && state.autoEndTriggered!==state.session.currentProblemIndex){
-      state.autoEndTriggered = state.session.currentProblemIndex;
+    if(rem<=0 && s && s.phase==='question' && state.autoEndTriggered!==s.currentProblemIndex){
+      state.autoEndTriggered = s.currentProblemIndex;
       handleRevealNow();
       return;
     }
+    updateTimerDOM(rem, s.problemDurationMs);
+    return;
+  }
+  if(state.screen==='team-question' && s){
+    const rem = questionRemainingMs();
+    const timeUp = rem<=0;
+    if(timeUp !== state._lastTimeUp){
+      state._lastTimeUp = timeUp;
+      render(); // boundary crossed — the screen's content actually changes
+      return;
+    }
+    updateTimerDOM(rem, s.problemDurationMs);
+    return;
+  }
+  if(state.screen==='team-answered' && s){
+    updateTimerDOM(questionRemainingMs(), s.problemDurationMs);
+    return;
   }
   render();
+}
+
+// Directly patches the timer bar/text (and the "answered" waiting-room
+// countdown) instead of going through render(), so the rest of the screen —
+// and any button the user has their finger/cursor on — is left untouched.
+function updateTimerDOM(rem, total){
+  const fill = document.getElementById('timeFill');
+  const txt = document.getElementById('timeText');
+  if(fill && txt){
+    const frac = total>0 ? rem/total : 0;
+    const color = frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)');
+    fill.style.width = Math.max(0,frac*100)+'%';
+    fill.style.background = color;
+    txt.textContent = fmt(rem);
+    txt.style.color = color;
+  }
+  const ansTimer = document.getElementById('answeredTimer');
+  if(ansTimer) ansTimer.textContent = fmt(rem) + ' remaining';
 }
 
 // Host-side: once every joined team has submitted a design for the live
@@ -705,8 +749,8 @@ function hostQuestionScreen(){
     <p class="scenario" style="margin-top:8px;">"${escapeHtml(problem.card)}"</p>
   </div>
   <div class="timebar-wrap">
-    <div class="timebar-track"><div class="timebar-fill" style="width:${Math.max(0,frac*100)}%;background:${color};"></div></div>
-    <div class="timebar-txt" style="color:${color};">${fmt(rem)}</div>
+    <div class="timebar-track"><div class="timebar-fill" id="timeFill" style="width:${Math.max(0,frac*100)}%;background:${color};"></div></div>
+    <div class="timebar-txt" id="timeText" style="color:${color};">${fmt(rem)}</div>
   </div>
   <div class="card">
     <div class="eyebrow">Live progress</div>
@@ -759,6 +803,7 @@ function hostRevealScreen(){
         </tr>`).join('')}
     </tbody></table>
   </div>
+  ${idealChainCard(problem)}
   <div class="divider"></div>
   <h3 style="margin-bottom:10px;">Leaderboard</h3>
   <div class="card">${leaderboardHTML(s)}</div>
@@ -792,6 +837,31 @@ function leaderboardHTML(s){
       <div class="lead-name">${escapeHtml(r.name)}</div>
       <div class="lead-score">${r.score} pts</div>
     </div>`).join('');
+}
+
+// Builds the answer-key chain for a problem — the actually-correct sensor(s)
+// and the optimal connectivity, not whatever a given team happened to pick —
+// so everyone can see the intended correct order once results are shown.
+function idealChainString(problem){
+  const sensorLabel = problem.correctSensors.map(label=>{
+    const opt = problem.sensorOptions.find(o=>o.label===label);
+    return (opt?opt.emoji+' ':'') + escapeHtml(label);
+  }).join(' or ');
+  const bestConn = problem.connectivity.find(c=>c.validity==='optimal') || problem.connectivity[0];
+  const steps = [
+    sensorLabel,
+    `${bestConn.emoji} ${escapeHtml(bestConn.label)}`,
+    `☁️ Cloud`,
+    `📊 ${escapeHtml(problem.dataLabel)}`,
+    `${problem.actionEmoji} ${escapeHtml(problem.actionLabel)}`
+  ];
+  return steps.join(' <span style="color:var(--slate);padding:0 4px;">→</span> ');
+}
+function idealChainCard(problem){
+  return `<div class="card" style="margin-top:16px;">
+    <div class="eyebrow">Answer key — correct chain</div>
+    <p style="font-size:15.5px;font-weight:600;line-height:1.9;margin-top:8px;">${idealChainString(problem)}</p>
+  </div>`;
 }
 
 // ---------- TEAM: join ----------
@@ -853,8 +923,8 @@ function teamQuestionScreen(){
     </div>
   </div>
   <div class="timebar-wrap">
-    <div class="timebar-track"><div class="timebar-fill" style="width:${Math.max(0,rem/s.problemDurationMs*100)}%;background:${timeUp?'var(--coral)':'var(--cyan)'};"></div></div>
-    <div class="timebar-txt" style="color:${timeUp?'var(--coral)':'var(--cyan)'};">${fmt(rem)}</div>
+    <div class="timebar-track"><div class="timebar-fill" id="timeFill" style="width:${Math.max(0,rem/s.problemDurationMs*100)}%;background:${timeUp?'var(--coral)':'var(--cyan)'};"></div></div>
+    <div class="timebar-txt" id="timeText" style="color:${timeUp?'var(--coral)':'var(--cyan)'};">${fmt(rem)}</div>
   </div>
   <div class="card" style="margin-bottom:18px;"><div class="eyebrow">Problem ${idx+1}</div><h2>${escapeHtml(problem.title)}</h2><p class="scenario">"${escapeHtml(problem.card)}"</p></div>
 
@@ -917,7 +987,7 @@ function teamAnsweredScreen(){
     <div class="eyebrow">Design locked in</div>
     <h2>Nice work, ${escapeHtml(state.teamName)}</h2>
     <p>Your design for "${escapeHtml(problem.title)}" is submitted${mine? ' — ' + mine.total + '/30 points so far':''}. Waiting on other teams…</p>
-    <p class="mono" style="margin-top:10px;color:var(--slate);">${fmt(rem)} remaining</p>
+    <p class="mono" id="answeredTimer" style="margin-top:10px;color:var(--slate);">${fmt(rem)} remaining</p>
   </div>
   `;
 }
@@ -956,6 +1026,7 @@ function teamRevealScreen(){
     <div class="mono" style="font-size:38px;color:var(--cyan);font-weight:700;">${r.total} / 30</div>
   </div>
   ` : `<div class="card center"><p style="color:var(--coral);margin:0;">No design was submitted in time for this problem — 0 points.</p></div>`}
+  ${idealChainCard(problem)}
   <div class="divider"></div>
   <h3 style="margin-bottom:10px;">Leaderboard</h3>
   <div class="card">${leaderboardHTML(s)}</div>
