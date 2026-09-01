@@ -3,543 +3,505 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blueprint Round — IoTVerse</title>
+<title>Shotclock — Live Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
 <style>
   :root{
-    --ink:#0F1420; --ink-2:#171E2E; --ink-3:#20293D;
-    --paper:#F3F1EA; --slate:#7C8AA3;
-    --amber:#FFB020; --cyan:#3FE0C5; --coral:#FF5C5C; --violet:#8B7CF6;
-    --grid-line: rgba(63,224,197,0.06);
+    --ink:#12141C;
+    --ink-2:#1B1E29;
+    --ink-3:#242838;
+    --paper:#F5F3EE;
+    --slate:#7C8299;
+    --amber:#FFB020;
+    --cyan:#3FE0C5;
+    --coral:#FF5C5C;
+    --violet:#8B7CF6;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background-color:var(--ink);
-    background-image:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-    background-size:34px 34px;
-    color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
   }
   #app{min-height:100vh;display:flex;flex-direction:column;}
   h1,h2,h3{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
   .mono{font-family:'Space Mono',monospace;}
-  .screen{max-width:1000px;margin:0 auto;padding:26px 20px 60px;width:100%;flex:1;}
-  .eyebrow{text-transform:uppercase;font-size:12px;letter-spacing:.14em;color:var(--slate);font-weight:700;margin-bottom:6px;}
-  .card{background:var(--ink-2);border-radius:18px;padding:24px;border:1px solid rgba(255,255,255,0.06);}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--amber);color:var(--ink);border:none;
-    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;padding:13px 24px;border-radius:999px;cursor:pointer;
-    text-transform:uppercase;letter-spacing:.04em;transition:transform .12s, filter .12s;}
+  .screen{max-width:960px;margin:0 auto;padding:28px 20px 60px;width:100%;flex:1;}
+  .eyebrow{
+    text-transform:uppercase;font-size:12px;letter-spacing:0.14em;color:var(--slate);
+    font-weight:600;margin-bottom:6px;
+  }
+  .card{
+    background:var(--ink-2);
+    border-radius:20px;
+    padding:28px;
+    border:1px solid rgba(255,255,255,0.05);
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--amber);color:var(--ink);border:none;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;
+    padding:14px 26px;border-radius:999px;cursor:pointer;
+    text-transform:uppercase;letter-spacing:0.04em;
+    transition:transform .12s ease, filter .12s ease;
+  }
   .btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
-  .btn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
-  .btn-ghost{background:transparent;color:var(--paper);border:1.5px solid rgba(255,255,255,0.18);}
+  .btn:active{transform:translateY(0);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+  .btn-ghost{
+    background:transparent;color:var(--paper);border:1.5px solid rgba(255,255,255,0.18);
+  }
   .btn-ghost:hover{border-color:var(--paper);filter:none;}
   .btn-cyan{background:var(--cyan);}
-  .btn-coral{background:var(--coral);}
-  .btn-sm{padding:9px 16px;font-size:12px;}
   .btn-block{width:100%;}
-  input[type=text],input[type=number]{
-    width:100%;background:var(--ink);border:1.5px solid rgba(255,255,255,0.12);color:var(--paper);
-    font-family:'Inter',sans-serif;font-size:16px;padding:13px 15px;border-radius:12px;outline:none;}
-  input:focus{border-color:var(--amber);}
-  label{font-size:12px;color:var(--slate);font-weight:700;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;}
+  input[type=text]{
+    width:100%;background:var(--ink);border:1.5px solid rgba(255,255,255,0.12);
+    color:var(--paper);font-family:'Inter',sans-serif;font-size:16px;
+    padding:14px 16px;border-radius:12px;outline:none;
+  }
+  input[type=text]:focus{border-color:var(--amber);}
+  label{font-size:13px;color:var(--slate);font-weight:600;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;}
   .field{margin-bottom:16px;}
   .row{display:flex;gap:12px;flex-wrap:wrap;}
   .center{text-align:center;}
-  .divider{height:1px;background:rgba(255,255,255,0.06);margin:22px 0;}
-  .empty{color:var(--slate);font-size:14px;padding:16px 0;}
-  .pill{display:inline-block;background:var(--ink-3);color:var(--slate);font-size:11px;font-weight:700;padding:6px 13px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em;}
-  .pill.live{background:rgba(63,224,197,0.14);color:var(--cyan);}
-  .topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.06);}
-  .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
-  .brand .dot{color:var(--amber);}
-
-  .landing-hero{text-align:center;padding:64px 20px 36px;}
-  .landing-hero h1{font-size:48px;line-height:1.04;}
+  .landing-hero{
+    text-align:center;padding:70px 20px 40px;
+  }
+  .landing-hero h1{font-size:56px;line-height:1.02;}
   .landing-hero .accent{color:var(--amber);}
-  .landing-hero p{color:var(--slate);font-size:16px;margin:14px auto 32px;max-width:480px;}
+  .landing-hero p{color:var(--slate);font-size:17px;margin:14px auto 34px;max-width:480px;}
   .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px;margin:0 auto;}
-  @media(max-width:560px){.role-grid{grid-template-columns:1fr;} .landing-hero h1{font-size:34px;}}
-  .role-card{background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px 20px;cursor:pointer;text-align:left;transition:border-color .15s, transform .15s;}
+  @media(max-width:560px){.role-grid{grid-template-columns:1fr;} .landing-hero h1{font-size:38px;}}
+  .role-card{
+    background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.06);border-radius:18px;
+    padding:26px 20px;cursor:pointer;text-align:left;transition:border-color .15s ease, transform .15s ease;
+  }
   .role-card:hover{border-color:var(--amber);transform:translateY(-2px);}
-  .role-card .tag{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);font-weight:700;margin-bottom:8px;}
-  .role-card h3{font-size:19px;margin-bottom:5px;}
-  .role-card p{color:var(--slate);font-size:13.5px;margin:0;line-height:1.4;}
+  .role-card .tag{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--amber);font-weight:700;margin-bottom:10px;}
+  .role-card h3{font-size:20px;margin-bottom:6px;}
+  .role-card p{color:var(--slate);font-size:14px;margin:0;line-height:1.4;}
 
-  .problem-check{display:flex;gap:14px;align-items:flex-start;padding:16px;border:1.5px solid rgba(255,255,255,0.08);border-radius:14px;cursor:pointer;margin-bottom:10px;transition:border-color .15s;}
-  .problem-check:hover{border-color:var(--amber);}
-  .problem-check.on{border-color:var(--cyan);background:rgba(63,224,197,0.06);}
-  .problem-check .box{width:20px;height:20px;border-radius:6px;border:2px solid var(--slate);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:12px;}
-  .problem-check.on .box{border-color:var(--cyan);background:var(--cyan);color:var(--ink);}
-  .problem-check h4{margin:0 0 3px;font-size:15px;font-family:'Space Grotesk',sans-serif;}
-  .problem-check p{margin:0;color:var(--slate);font-size:13px;line-height:1.4;}
+  /* clock ring */
+  .clockwrap{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .clocklabel{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--slate);font-weight:700;}
 
-  .qr-box{background:var(--paper);padding:14px;border-radius:16px;display:inline-block;}
-  .code-display{font-family:'Space Mono',monospace;font-size:40px;letter-spacing:.1em;color:var(--amber);}
-  .team-chip{display:inline-flex;align-items:center;gap:8px;background:var(--ink-3);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;margin:4px 6px 4px 0;}
+  .qbanner{
+    background:var(--ink-3);border-radius:16px;padding:18px 22px;margin-bottom:20px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .qbanner .qnum{color:var(--slate);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  .qbanner .qtext{font-family:'Space Grotesk',sans-serif;font-size:22px;}
 
-  .ringwrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
-  .ringlabel{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--slate);font-weight:700;}
-
-  .timebar-wrap{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
-  .timebar-track{flex:1;height:10px;border-radius:999px;background:var(--ink-3);overflow:hidden;}
-  .timebar-fill{height:100%;border-radius:999px;transition:width .25s linear;}
-  .timebar-txt{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;white-space:nowrap;}
-
-  .tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
-  .ptile{background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.07);border-radius:16px;padding:18px;cursor:pointer;transition:border-color .15s, transform .15s;text-align:left;}
-  .ptile:hover{border-color:var(--amber);transform:translateY(-2px);}
-  .ptile.done{border-color:var(--cyan);}
-  .ptile .pnum{font-family:'Space Mono',monospace;color:var(--slate);font-size:12px;margin-bottom:6px;}
-  .ptile h4{font-size:16px;margin-bottom:6px;}
-  .ptile .pstatus{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--slate);}
-  .ptile.done .pstatus{color:var(--cyan);}
-
-  .opt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
   @media(max-width:600px){.opt-grid{grid-template-columns:1fr;}}
-  .selopt{display:flex;align-items:center;gap:12px;border:1.5px solid rgba(255,255,255,0.09);background:var(--ink-3);
-    border-radius:14px;padding:15px 16px;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;color:var(--paper);
-    transition:border-color .12s, transform .1s; width:100%;}
-  .selopt:hover{border-color:var(--amber);}
-  .selopt.sel{border-color:var(--cyan);background:rgba(63,224,197,0.08);}
-  .selopt .em{font-size:20px;}
-  .selopt .costbadge{margin-left:auto;font-family:'Space Mono',monospace;font-size:12px;color:var(--slate);}
+  .opt{
+    display:flex;align-items:center;gap:14px;
+    border-radius:16px;padding:20px;cursor:pointer;border:none;text-align:left;
+    font-family:'Inter',sans-serif;font-size:17px;font-weight:600;color:var(--ink);
+    transition:transform .1s ease, filter .12s ease; width:100%;
+  }
+  .opt:hover{filter:brightness(1.06);}
+  .opt:active{transform:scale(0.98);}
+  .opt:disabled{opacity:.55;cursor:not-allowed;}
+  .opt .badge{
+    width:34px;height:34px;border-radius:10px;background:rgba(0,0,0,0.18);
+    display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;
+    font-weight:700;flex-shrink:0;
+  }
+  .opt-0{background:var(--cyan);} .opt-1{background:var(--amber);}
+  .opt-2{background:var(--coral);color:var(--paper);} .opt-2 .badge{background:rgba(255,255,255,0.18);}
+  .opt-3{background:var(--violet);color:var(--paper);} .opt-3 .badge{background:rgba(255,255,255,0.18);}
 
-  .chainzone{background:var(--ink-3);border-radius:16px;padding:18px;margin-top:6px;}
-  .slots{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
-  .slot{flex:1;min-width:90px;height:64px;border:2px dashed rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;
-    font-size:12px;color:var(--slate);text-align:center;padding:6px;}
-  .slot.filled{border-style:solid;border-color:var(--cyan);background:rgba(63,224,197,0.08);color:var(--paper);font-weight:600;}
-  .pool{display:flex;gap:10px;flex-wrap:wrap;}
-  .chip{background:var(--ink-2);border:1.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;transition:border-color .12s;}
-  .chip:hover{border-color:var(--amber);}
+  .opt.correct{outline:3px solid var(--cyan);}
+  .opt.wrong{outline:3px solid var(--coral);opacity:0.5;}
 
   table{width:100%;border-collapse:collapse;}
-  th,td{text-align:left;padding:11px 9px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13.5px;}
+  th,td{text-align:left;padding:12px 10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px;}
   th{color:var(--slate);text-transform:uppercase;letter-spacing:.06em;font-size:11px;font-weight:700;}
   td.pts{font-family:'Space Mono',monospace;color:var(--cyan);font-weight:700;}
+  td.pts.zero{color:var(--slate);}
 
-  .lead-row{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
-  .lead-rank{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;color:var(--slate);width:32px;}
+  .lead-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .lead-rank{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:var(--slate);width:34px;}
   .lead-rank.gold{color:var(--amber);}
   .lead-name{flex:1;font-weight:600;}
   .lead-score{font-family:'Space Mono',monospace;font-weight:700;color:var(--cyan);}
 
-  .breakdown-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
-  .breakdown-row:last-child{border-bottom:none;}
-  .breakdown-row .bl{font-weight:600;}
-  .breakdown-row .bd{color:var(--slate);font-size:12.5px;margin-top:3px;line-height:1.4;max-width:520px;}
-  .breakdown-row .bp{font-family:'Space Mono',monospace;font-weight:700;color:var(--cyan);white-space:nowrap;}
-  .breakdown-row .bp.zero{color:var(--coral);}
-  .badge-v{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:999px;margin-left:8px;}
-  .badge-v.optimal{background:rgba(63,224,197,0.15);color:var(--cyan);}
-  .badge-v.acceptable{background:rgba(255,176,32,0.15);color:var(--amber);}
-  .badge-v.incorrect{background:rgba(255,92,92,0.15);color:var(--coral);}
-  .scenario{font-size:16px;line-height:1.5;font-style:italic;color:var(--paper);}
-  .status-banner{text-align:center;padding:36px 20px;color:var(--slate);}
+  .qr-box{background:var(--paper);padding:14px;border-radius:16px;display:inline-block;}
+  .code-display{font-family:'Space Mono',monospace;font-size:44px;letter-spacing:0.1em;color:var(--amber);}
+  .pill{
+    display:inline-block;background:var(--ink-3);color:var(--slate);font-size:12px;font-weight:700;
+    padding:6px 14px;border-radius:999px;text-transform:uppercase;letter-spacing:.06em;
+  }
+  .pill.live{background:rgba(63,224,197,0.14);color:var(--cyan);}
+  .qlist-item{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+    padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .qlist-item:last-child{border-bottom:none;}
+  .qlist-item p{margin:0;font-weight:600;}
+  .qlist-item .opts-mini{color:var(--slate);font-size:13px;margin-top:4px;}
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;padding:18px 24px;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .topbar .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.02em;}
+  .brand .dot{color:var(--amber);}
+  .footnote{color:var(--slate);font-size:13px;margin-top:10px;line-height:1.5;}
+  .divider{height:1px;background:rgba(255,255,255,0.06);margin:24px 0;}
+  .empty{color:var(--slate);font-size:14px;padding:20px 0;}
+  .status-banner{
+    text-align:center;padding:40px 20px;color:var(--slate);
+  }
   .status-banner h2{color:var(--paper);margin-bottom:8px;}
+  .team-chip{
+    display:inline-flex;align-items:center;gap:8px;background:var(--ink-3);padding:8px 14px;
+    border-radius:999px;font-size:13px;font-weight:600;
+  }
+  select{
+    width:100%;background:var(--ink);border:1.5px solid rgba(255,255,255,0.12);color:var(--paper);
+    padding:14px 16px;border-radius:12px;font-family:'Inter',sans-serif;font-size:15px;
+  }
+
+  /* ---- new: round-type + flourish styles ---- */
+  .tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px;}
+  @media(max-width:520px){.tf-grid{grid-template-columns:1fr;}}
+  .tf-opt{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    border-radius:16px;padding:28px;cursor:pointer;border:none;text-align:center;
+    font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--ink);
+    transition:transform .1s ease, filter .12s ease; width:100%;
+  }
+  .tf-opt:hover{filter:brightness(1.06);}
+  .tf-opt:active{transform:scale(0.98);}
+  .tf-opt:disabled{opacity:.55;cursor:not-allowed;}
+  .tf-opt.true-opt{background:var(--cyan);}
+  .tf-opt.false-opt{background:var(--coral);color:var(--paper);}
+  .tf-opt.correct{outline:3px solid var(--cyan);}
+  .tf-opt.wrong{outline:3px solid var(--coral);opacity:0.5;}
+
+  .pic-frame{
+    width:100%;max-height:320px;overflow:hidden;border-radius:16px;margin-top:16px;
+    background:var(--ink-3);display:flex;align-items:center;justify-content:center;
+  }
+  .pic-frame img{width:100%;max-height:320px;object-fit:cover;transition:filter .3s linear;}
+
+  .overload-badge{
+    display:inline-flex;align-items:center;gap:6px;background:rgba(255,92,92,0.15);color:var(--coral);
+    font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+    padding:5px 12px;border-radius:999px;margin-bottom:8px;
+  }
+  .streak-flame{color:var(--amber);font-weight:700;font-size:13px;margin-top:6px;}
+
+  .powerup-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .btn-power{
+    background:var(--ink-3);color:var(--paper);border:1.5px solid rgba(255,255,255,0.14);
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;
+    padding:10px 16px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-power:hover{border-color:var(--cyan);}
+  .btn-power:disabled{opacity:0.35;cursor:not-allowed;}
+  .btn-power.steal{border-color:rgba(255,92,92,0.4);}
+  .btn-power.steal:hover{border-color:var(--coral);}
+
+  .roast{
+    margin-top:14px;background:rgba(255,176,32,0.1);border:1px solid rgba(255,176,32,0.25);
+    color:var(--amber);padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600;
+  }
+
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin:30px 0 10px;}
+  .podium-col{
+    width:110px;border-radius:16px 16px 0 0;display:flex;flex-direction:column;align-items:center;
+    justify-content:flex-end;padding:14px 8px;text-align:center;
+    animation:podium-rise .6s cubic-bezier(.2,.8,.3,1.2) both;
+  }
+  @keyframes podium-rise{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .podium-col .medal{font-size:26px;margin-bottom:6px;}
+  .podium-col .pname{font-weight:700;font-size:13px;margin-bottom:2px;word-break:break-word;}
+  .podium-col .pscore{font-family:'Space Mono',monospace;font-size:12px;color:var(--ink);opacity:.75;}
+  .podium-col.gold{background:var(--amber);height:170px;order:2;}
+  .podium-col.silver{background:#C9CEDB;height:130px;order:1;}
+  .podium-col.bronze{background:#E0A672;height:105px;order:3;}
+  .podium-col.gold *{color:var(--ink);}
+
+  .hub-pulse{ animation: hub-glow 1.6s ease-in-out infinite; }
+  @keyframes hub-glow{
+    0%,100%{ filter: drop-shadow(0 0 0px rgba(255,176,32,0.6)); }
+    50%{ filter: drop-shadow(0 0 20px rgba(255,176,32,0.95)); }
+  }
+
+  .pill{
+    display:inline-block;background:rgba(255,255,255,0.08);color:var(--slate);
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    padding:3px 9px;border-radius:999px;vertical-align:middle;
+  }
 </style>
 </head>
 <body>
 <div id="app"></div>
 
 <script>
-/* =========================================================
-   BLUEPRINT ROUND — IoTVerse chain-building challenge
-   Teams pick a sensor + connectivity card, then arrange the
-   5-stage pipeline (Sensor -> Connectivity -> Cloud -> Data -> Action).
-   Auto-scored against the answer-key rubric. Shared timer.
-========================================================= */
+/* ---------------------------------------------------------
+   SHOTCLOCK — live MCQ quiz app
+   State synced through window.storage shared blobs so any
+   device that opens this same page (e.g. via QR code) can
+   join a session and answer in real time.
+--------------------------------------------------------- */
 
-// ---------- problem bank (from Round 1 Problem Bank & Answer Keys) ----------
-const PROBLEMS = [
-  {
-    id:1, title:"Downtown Flooding",
-    card:"Downtown floods every monsoon because drainage blockages aren't detected in time.",
-    sensorOptions:[
-      {label:"Water Level Sensor", emoji:"💧"},
-      {label:"Motion Sensor", emoji:"👤"},
-      {label:"Air Quality Sensor", emoji:"🌫️"},
-      {label:"GPS/Location Sensor", emoji:"📍"}
-    ],
-    correctSensors:["Water Level Sensor"],
-    connectivity:[
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Long range, low power — perfect for city-wide drain sensors."},
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if near city infrastructure, but limited range and higher power use."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"High bandwidth, but expensive operational cost for simple water sensors."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range is too short (<10m) for underground city drainage networks."}
-    ],
-    dataLabel:"Water level rising", actionLabel:"Alert Municipal Team", actionEmoji:"🚨"
-  },
-  {
-    id:2, title:"Hospital Generator Failure",
-    card:"The hospital's ICU had two equipment failures because nobody knew the backup generator's fuel was low.",
-    sensorOptions:[
-      {label:"Fuel Level Sensor", emoji:"⛽"},
-      {label:"Temperature Sensor", emoji:"🌡️"},
-      {label:"Water Flow Sensor", emoji:"💧"},
-      {label:"Light/Ambient Sensor", emoji:"💡"}
-    ],
-    correctSensors:["Fuel Level Sensor","Temperature Sensor"],
-    connectivity:[
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed indoor location, always-on reliability suits critical monitoring."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"optimal", points:10, penalty:0, reason:"Short-range single-room monitoring works equally well here."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works, but unnecessary operational cost for a fixed indoor sensor."},
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"incorrect", points:0, penalty:0, reason:"Built for wide-area outdoor spread, not a single indoor generator."}
-    ],
-    dataLabel:"Fuel below 20%", actionLabel:"Alert Maintenance Staff", actionEmoji:"🚨"
-  },
-  {
-    id:3, title:"Campus Bike Theft",
-    card:"Campus bike theft has tripled this year and there's no way to track missing bikes.",
-    sensorOptions:[
-      {label:"GPS/Location Sensor", emoji:"📍"},
-      {label:"Motion Sensor", emoji:"👤"},
-      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"},
-      {label:"Soil Moisture Sensor", emoji:"🌱"}
-    ],
-    correctSensors:["GPS/Location Sensor","Motion Sensor"],
-    connectivity:[
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"optimal", points:10, penalty:0, reason:"Bike is moving, needs continuous wide-area real-time tracking."},
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Only works while bike is within campus Wi-Fi range, fails once it leaves."},
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Long range works, but not ideal for real-time continuous tracking."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Far too short range for tracking a moving bike across campus."}
-    ],
-    dataLabel:"Bike moved outside geofence", actionLabel:"Alert Owner/Security", actionEmoji:"🚨"
-  },
-  {
-    id:4, title:"Smart Waste Overflow",
-    card:"City garbage bins are either collected too early (half-empty) or too late (overflowing) because collection is on a fixed schedule, not actual need.",
-    sensorOptions:[
-      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"},
-      {label:"Water Level Sensor", emoji:"💧"},
-      {label:"Air Quality Sensor", emoji:"🌫️"},
-      {label:"GPS/Location Sensor", emoji:"📍"}
-    ],
-    correctSensors:["Fill-Level/Ultrasonic Sensor"],
-    connectivity:[
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Bins spread across city, infrequent low-power updates fit perfectly."},
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if bins are within city Wi-Fi coverage, but not built for scattered outdoor use."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works but unnecessarily expensive for infrequent fill-level updates."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too short for city-wide spread bins."}
-    ],
-    dataLabel:"Bin at 90% full", actionLabel:"Schedule Collection", actionEmoji:"🚛"
-  },
-  {
-    id:5, title:"Apartment Water Leakage",
-    card:"A residential apartment complex loses thousands of liters of water every month to undetected pipe leaks.",
-    sensorOptions:[
-      {label:"Water Flow Sensor", emoji:"💧"},
-      {label:"Water Level Sensor", emoji:"💧"},
-      {label:"Fuel Level Sensor", emoji:"⛽"},
-      {label:"Motion Sensor", emoji:"👤"}
-    ],
-    correctSensors:["Water Flow Sensor","Water Level Sensor"],
-    connectivity:[
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Fixed building infrastructure, moderate range is exactly enough."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"acceptable", points:7, penalty:5, reason:"Works for a single unit/floor, not the whole complex."},
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Works but overkill unless the complex is unusually large/spread out."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost/complexity for a fixed indoor plumbing sensor."}
-    ],
-    dataLabel:"Unusual flow detected at 2AM", actionLabel:"Alert Facility Manager", actionEmoji:"🚨"
-  },
-  {
-    id:6, title:"Streetlight Energy Waste",
-    card:"Streetlights across the city stay on during the day and don't dim when no one's around at night, wasting significant electricity.",
-    sensorOptions:[
-      {label:"Light/Ambient Sensor", emoji:"💡"},
-      {label:"Motion Sensor", emoji:"👤"},
-      {label:"Air Quality Sensor", emoji:"🌫️"},
-      {label:"Fill-Level/Ultrasonic Sensor", emoji:"🗑️"}
-    ],
-    correctSensors:["Light/Ambient Sensor","Motion Sensor"],
-    connectivity:[
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"optimal", points:10, penalty:0, reason:"Local automation, no need for high bandwidth or wide range."},
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"acceptable", points:7, penalty:10, reason:"Works for a city-wide streetlight network, though Wi-Fi is simpler here."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Unnecessary cost for simple on/off automation."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range too limited to connect streetlights to a central system."}
-    ],
-    dataLabel:"Daylight detected", actionLabel:"Lights OFF", actionEmoji:"💡"
-  },
-  {
-    id:7, title:"Air Quality Alerts",
-    card:"Residents near an industrial zone have no way of knowing when pollution levels spike to unsafe levels.",
-    sensorOptions:[
-      {label:"Air Quality Sensor", emoji:"🌫️"},
-      {label:"Temperature Sensor", emoji:"🌡️"},
-      {label:"Water Level Sensor", emoji:"💧"},
-      {label:"GPS/Location Sensor", emoji:"📍"}
-    ],
-    correctSensors:["Air Quality Sensor"],
-    connectivity:[
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Outdoor monitoring stations spread across a zone, low power."},
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works if stations are within existing Wi-Fi coverage."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"acceptable", points:7, penalty:15, reason:"Works but costly for periodic AQI readings."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for outdoor zone-wide monitoring."}
-    ],
-    dataLabel:"AQI above safe threshold", actionLabel:"Public Alert Notification", actionEmoji:"🚨"
-  },
-  {
-    id:8, title:"Farm Irrigation Waste",
-    card:"A cooperative of small farmers over-waters some fields and under-waters others because irrigation is done on a fixed schedule, not actual soil condition.",
-    sensorOptions:[
-      {label:"Soil Moisture Sensor", emoji:"🌱"},
-      {label:"Water Flow Sensor", emoji:"💧"},
-      {label:"Temperature Sensor", emoji:"🌡️"},
-      {label:"Fuel Level Sensor", emoji:"⛽"}
-    ],
-    correctSensors:["Soil Moisture Sensor"],
-    connectivity:[
-      {key:"lorawan", label:"LoRaWAN", emoji:"📡", baseCost:20, validity:"optimal", points:10, penalty:0, reason:"Farms spread out, infrequent low-power readings fit perfectly."},
-      {key:"wifi", label:"Wi-Fi", emoji:"📶", baseCost:15, validity:"acceptable", points:7, penalty:10, reason:"Works only if fields are within existing Wi-Fi coverage."},
-      {key:"cellular", label:"Cellular (5G/4G)", emoji:"📡", baseCost:25, validity:"incorrect", points:0, penalty:0, reason:"Unnecessarily expensive for simple periodic soil readings."},
-      {key:"ble", label:"Bluetooth (BLE)", emoji:"🔵", baseCost:10, validity:"incorrect", points:0, penalty:0, reason:"Range far too short for spread-out farmland."}
-    ],
-    dataLabel:"Moisture below 20%", actionLabel:"Irrigation ON", actionEmoji:"💧"
-  }
-];
+const QUESTION_SECONDS = 30;
 
-const CHAIN_TYPES = ["sensor","connectivity","cloud","data","action"];
-
-// ---------- state ----------
 const state = {
-  role:null, screen:'landing', code:null, session:null,
-  teamId:null, teamName:null,
-  draftProblemIds:[], draftMinutes:20,
-  currentProblemId:null, editingProblem:false,
-  draft:{sensor:null, connKey:null},
-  chainPoolFull:[], chainSeqIds:[],
-  pollTimer:null, tickTimer:null, autoEndTriggered:false,
-  teamToken:null, tabId:null, securityTimer:null, securityChannel:null,
-  securityMessage:'',
-  error:'', joining:false
+  role: null,          // 'host' | 'team'
+  screen: 'landing',
+  code: null,
+  session: null,       // latest fetched session object
+  teamId: null,
+  teamName: null,
+  answeredIndex: -1,   // last question index this team has locked in an answer for
+  newQ: { type:'mcq', text:'', opts:['','','',''], correct:0, tfAnswer:true, imageUrl:'', emojiClue:'', scrambled:'', optionA:'', optionB:'', doublePoints:false }, // draft question form
+  pollTimer: null,
+  tickTimer: null,
+  lastBeepSecond: null, // guards against re-beeping on the same second during a tick
+  celebratedIndex: -1,  // guards against re-firing confetti for the same question
+  autoRevealedIndex: -1, // guards against re-triggering auto-reveal for the same question
+  error: ''
 };
 
-// ---------- SERVER STORAGE ----------
-async function loadSession(code){
-  try{
-    const response = await fetch(`/api/sessions/${encodeURIComponent(code)}`);
-    if(!response.ok) return null;
-    return await response.json();
-  }catch(e){
-    console.error("Failed to load session:", e);
-    return null;
+const ROASTS = [
+  "Signal's weaker than a LoRaWAN packet in a thunderstorm ⛈️📡",
+  "Did your Wi-Fi drop, or was that just your brain? 🐢",
+  "Buffering... buffering... still buffering. 😴",
+  "That response time needs its own firmware update. 🔧",
+  "Latency levels: dial-up modem. 📠",
+  "Somewhere, a sensor is reporting faster than that. 🐌"
+];
+
+const NAME_SUGGESTIONS = [
+  "Byte Me", "404 Signal Not Found", "The Overheated Sensors", "Ctrl+Alt+IoT",
+  "Wi-Fi Warriors", "The Packet Sniffers", "Segmentation Fault Squad", "Null Pointer Ninjas",
+  "The Baud Rates", "Firmware Over the Air", "Latency Legends", "The Edge Cases"
+];
+
+function roundTypeLabel(q){
+  switch(q.type){
+    case 'truefalse': return 'True or False Blitz';
+    case 'picture': return 'Picture Reveal';
+    case 'emoji': return 'Emoji Riddle';
+    case 'oddone': return 'Odd One Out';
+    case 'anagram': return 'Anagram Sprint';
+    case 'thisorthat': return 'This or That';
+    case 'bluff': return 'Bluff Round';
+    default: return 'Multiple Choice';
   }
 }
 
-async function saveSession(code, obj){
+// ---------- sound effects (generated in-browser, no external audio files) ----------
+let _actx = null;
+function beep(freq, durMs, type){
   try{
-    const headers = {'Content-Type':'application/json'};
-    if(state.role==='team' && state.teamId && state.teamToken){
-      headers['X-Team-Id']=state.teamId;
-      headers['X-Team-Token']=state.teamToken;
-      headers['X-Team-Tab']=state.tabId || '';
-    }
-    const response = await fetch(`/api/sessions/${encodeURIComponent(code)}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(obj)
-    });
+    if(!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = _actx.createOscillator();
+    const gain = _actx.createGain();
+    osc.type = type || 'square';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.06, _actx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, _actx.currentTime + durMs/1000);
+    osc.connect(gain); gain.connect(_actx.destination);
+    osc.start(); osc.stop(_actx.currentTime + durMs/1000);
+  }catch(e){ /* audio not available — fail silently */ }
+}
+function playConnectSound(){ beep(880,90,'square'); setTimeout(()=>beep(1320,120,'square'),90); }
+function playLowBatterySound(){ beep(220,80,'sine'); }
+function playFreezeSound(){ beep(1600,60,'sine'); setTimeout(()=>beep(1200,60,'sine'),60); setTimeout(()=>beep(800,90,'sine'),120); }
+function playStealSound(){ beep(180,50,'sawtooth'); setTimeout(()=>beep(140,140,'sawtooth'),50); }
 
-    if(!response.ok){
-      console.error("Failed to save session:", response.status);
-      return false;
-    }
-
-    return true;
-  }catch(e){
-    console.error("Failed to save session:", e);
-    return false;
+function fireConfetti(){
+  if(window.confetti){
+    window.confetti({ particleCount:80, spread:70, origin:{y:0.6}, colors:['#3FE0C5','#FFB020','#8B7CF6'] });
   }
 }
-function randCode(){ return String(Math.floor(1000+Math.random()*9000)); }
-function randId(){ return Math.random().toString(36).slice(2,9); }
 
-function teamStorageKey(code){ return `blueprint-team-token:${code}`; }
-function teamTabKey(code){ return `blueprint-team-tab:${code}`; }
+// ---------- storage helpers ----------
+async function loadSession(code) {
+    try {
+        const response = await fetch(`/api/session/${code}`);
 
-function beginTeamSecurity(){
-  if(state.role!=='team' || !state.code || !state.teamId || !state.teamToken) return;
-  state.tabId = sessionStorage.getItem(teamTabKey(state.code));
-  if(!state.tabId){
-    state.tabId = randId();
-    sessionStorage.setItem(teamTabKey(state.code), state.tabId);
-  }
+        if (!response.ok) {
+            return null;
+        }
 
-  const lockKey = `blueprint-active-tab:${state.code}:${state.teamId}`;
-  const writeLock = () => localStorage.setItem(lockKey, JSON.stringify({tabId:state.tabId, at:Date.now()}));
+        return await response.json();
 
-  if(state.securityChannel) state.securityChannel.close();
-  try{
-    state.securityChannel = new BroadcastChannel(`blueprint-security:${state.code}:${state.teamId}`);
-    state.securityChannel.onmessage = async ev => {
-      if(ev.data && ev.data.type==='HELLO' && ev.data.tabId!==state.tabId){
-        state.securityChannel.postMessage({type:'CONFLICT', tabId:state.tabId});
-        await disqualifyTeam('The quiz was opened in another tab or window.');
-      }else if(ev.data && ev.data.type==='CONFLICT' && ev.data.tabId!==state.tabId){
-        await disqualifyTeam('The quiz was opened in another tab or window.');
-      }
-    };
-    state.securityChannel.postMessage({type:'HELLO', tabId:state.tabId});
-  }catch(e){}
+    } catch (error) {
+        console.error("Load session error:", error);
+        return null;
+    }
+}
 
-  const onStorage = async ev => {
-    if(ev.key!==lockKey || !ev.newValue) return;
-    try{
-      const v=JSON.parse(ev.newValue);
-      if(v.tabId && v.tabId!==state.tabId){
-        await disqualifyTeam('The quiz was opened in another tab or window.');
-      }
-    }catch(e){}
+
+async function saveSession(code, obj) {
+    try {
+        const response = await fetch(`/api/session/${code}`, {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(obj)
+        });
+
+        return response.ok;
+
+    } catch (error) {
+        console.error("Save session error:", error);
+        return false;
+    }
+}
+function randCode(){
+  return String(Math.floor(1000 + Math.random()*9000));
+}
+function randId(){
+  return Math.random().toString(36).slice(2,9);
+}
+
+function blankSession(){
+  return {
+    createdAt: Date.now(),
+    questions: [],
+    teams: {},          // teamId -> name
+    scores: {},          // teamId -> total points
+    currentIndex: -1,
+    phase: 'setup',      // setup | lobby | question | reveal | finished
+    questionStartedAt: null,
+    answers: {},          // qIndex -> { teamId: {selected,timeMs,correct,points} }
+    streaks: {},           // teamId -> current consecutive-correct streak
+    powerups: {},          // teamId -> {freeze, steal} charges remaining
+    frozenTargets: {},      // qIndex -> [teamId, ...] teams jammed for that question
+    freezeUsedBy: {},        // qIndex -> [teamId, ...] teams who have already spent a freeze this question
+    stolenLog: {}           // qIndex -> [teamId, ...] teams who already used a steal that round
   };
-  window.addEventListener('storage', onStorage);
-  state.securityStorageHandler = onStorage;
-
-  writeLock();
-  if(state.securityTimer) clearInterval(state.securityTimer);
-  state.securityTimer = setInterval(async ()=>{
-    if(state.role!=='team') return;
-    const current = localStorage.getItem(lockKey);
-    try{
-      const v=current ? JSON.parse(current) : null;
-      if(v && v.tabId!==state.tabId){
-        await disqualifyTeam('The quiz was opened in another tab or window.');
-        return;
-      }
-    }catch(e){}
-    writeLock();
-    await validateTeamSecurity();
-  }, 2000);
 }
 
-function stopTeamSecurity(){
-  if(state.securityTimer) clearInterval(state.securityTimer);
-  state.securityTimer=null;
-  if(state.securityChannel){ try{state.securityChannel.close();}catch(e){} }
-  state.securityChannel=null;
-  if(state.securityStorageHandler) window.removeEventListener('storage', state.securityStorageHandler);
-  state.securityStorageHandler=null;
+// Base points from speed alone (before streak/overload/freeze modifiers).
+function basePoints(timeMs, correct){
+  if(!correct) return 0;
+  const sec = Math.min(timeMs/1000, QUESTION_SECONDS);
+  return Math.max(100, Math.round(1000 - (900 * sec/QUESTION_SECONDS)));
 }
 
-async function validateTeamSecurity(){
-  if(state.role!=='team' || !state.code || !state.teamId || !state.teamToken || !state.tabId) return false;
-  try{
-    const r=await fetch('/api/team/validate',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code:state.code,teamId:state.teamId,token:state.teamToken,tabId:state.tabId})
-    });
-    if(!r.ok){
-      const d=await r.json().catch(()=>({}));
-      await disqualifyTeam(d.error || 'This quiz attempt is no longer valid.');
-      return false;
-    }
-    return true;
-  }catch(e){ return true; }
-}
+// Full scoring pipeline: speed -> streak multiplier -> overload penalty -> freeze cap.
+function computePoints(opts){
+  const { timeMs, correct, streakBefore, doublePoints, frozen } = opts;
+  const effectiveTimeMs = frozen ? QUESTION_SECONDS*1000 : timeMs; // jammed signal = worst-case timing
+  let pts = basePoints(effectiveTimeMs, correct);
 
-async function disqualifyTeam(message){
-  if(state.securityMessage) return;
-  state.securityMessage = message || 'This quiz attempt has been disqualified.';
-  stopTeamSecurity();
-  try{
-    await fetch('/api/team/disqualify',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code:state.code,teamId:state.teamId,token:state.teamToken,reason:state.securityMessage})
-    });
-  }catch(e){}
-  state.error=state.securityMessage;
-  state.screen='team-ended';
-  render();
-}
-
-async function markJoinPageNavigation(){
-  if(state.role==='team' && state.teamId && state.teamToken){
-    await disqualifyTeam('You left the quiz and returned to the join page. This attempt is disqualified.');
+  if(correct){
+    if(streakBefore >= 2) pts = Math.round(pts * 1.5); // Strong Signal: 3rd correct-in-a-row and beyond
+    if(doublePoints) pts = pts * 2;                     // System Overload: correct pays double
+  } else if(doublePoints){
+    pts = -500;                                          // System Overload: wrong costs points
   }
+  return pts;
 }
 
-async function checkClosedOrDuplicatedAttempt(code){
-  const token=localStorage.getItem(teamStorageKey(code));
-  const tab=sessionStorage.getItem(teamTabKey(code));
-  if(token && !tab){
-    try{
-      const decoded=JSON.parse(token);
-      await fetch('/api/team/disqualify',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({code,teamId:decoded.teamId,token:decoded.token,reason:'The quiz was closed and reopened.'})
-      });
-    }catch(e){}
-    localStorage.removeItem(teamStorageKey(code));
-    return true;
-  }
-  return false;
-}
-
-function shuffle(arr){ arr=[...arr]; for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
-function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function fmt(ms){
-  const total = Math.max(0, Math.ceil(ms/1000));
-  const m = Math.floor(total/60); const s = total%60;
-  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-}
-
-// ---------- polling / ticking ----------
+// ---------- polling ----------
 function startPolling(){
   stopPolling();
   state.pollTimer = setInterval(async ()=>{
     if(!state.code) return;
     const s = await loadSession(state.code);
-    if(s){ state.session = s; autoAdvance(); }
-    render();
-  }, 1500);
-}
-function stopPolling(){ if(state.pollTimer) clearInterval(state.pollTimer); state.pollTimer=null; }
-function startTicker(){ stopTicker(); state.tickTimer = setInterval(tick, 250); }
-function stopTicker(){ if(state.tickTimer) clearInterval(state.tickTimer); state.tickTimer=null; }
-
-function autoAdvance(){
-  const s = state.session; if(!s || state.role!=='team') return;
-
-  if(s.phase==='ended'){
-    if(state.screen!=='team-ended') state.screen='team-ended';
-    return;
-  }
-
-  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
-  const finished = !!(s.finished && s.finished[state.teamId]);
-
-  // Once the team has spent all 100 IoT-Coins, they cannot open
-  // or attempt another problem. Move them directly to the Finish screen.
-  if(s.phase==='round' && (wallet.remaining <= 0 || finished)){
-    if(state.screen!=='team-finish') state.screen='team-finish';
-    return;
-  }
-
-  if(state.screen==='team-wait' && s.phase==='round'){ state.screen='team-round'; }
-}
-
-function roundRemainingMs(){
-  const s = state.session;
-  if(!s || !s.roundStartedAt) return s ? s.roundDurationMs : 0;
-  return Math.max(0, s.roundDurationMs - (Date.now()-s.roundStartedAt));
-}
-
-function tick(){
-  if(state.screen==='host-round'){
-    const rem = roundRemainingMs();
-    if(rem<=0 && state.session && state.session.phase==='round' && !state.autoEndTriggered){
-      state.autoEndTriggered = true;
-      handleEndRoundNow();
-      return;
+    if(s){
+      const prevPhase = state.session ? state.session.phase : null;
+      const prevIndex = state.session ? state.session.currentIndex : null;
+      state.session = s;
+      autoAdvanceScreen(prevPhase, prevIndex);
+      await maybeAutoReveal(s);
     }
+    render();
+  }, 1200);
+}
+function stopPolling(){
+  if(state.pollTimer) clearInterval(state.pollTimer);
+  state.pollTimer = null;
+}
+function startTicker(){
+  stopTicker();
+  state.tickTimer = setInterval(render, 250);
+}
+function stopTicker(){
+  if(state.tickTimer) clearInterval(state.tickTimer);
+  state.tickTimer = null;
+}
+
+function autoAdvanceScreen(prevPhase, prevIndex){
+  const s = state.session;
+  if(!s) return;
+  if(state.role === 'team'){
+    if(s.phase === 'lobby') state.screen = 'team-wait';
+    else if(s.phase === 'question'){
+      if(state.answeredIndex === s.currentIndex) state.screen = 'team-answered';
+      else state.screen = 'team-question';
+    } else if(s.phase === 'reveal') state.screen = 'team-reveal';
+    else if(s.phase === 'finished') state.screen = 'team-finished';
   }
-  render();
+}
+
+// Host-side: once every joined team has locked in an answer for the live question,
+// automatically flip to the reveal screen (answers + points) instead of making the
+// host click a button — the host still has to click "Next Question" to move on.
+async function maybeAutoReveal(s){
+  if(state.role !== 'host') return;
+  if(s.phase !== 'question') return;
+  const idx = s.currentIndex;
+  if(state.autoRevealedIndex === idx) return;
+  const totalTeams = Object.keys(s.teams).length;
+  if(totalTeams === 0) return;
+  const answeredCount = Object.keys(s.answers[idx] || {}).length;
+  if(answeredCount >= totalTeams){
+    state.autoRevealedIndex = idx;
+    await handleRevealNow();
+  }
+}
+
+function remainingSeconds(){
+  const s = state.session;
+  if(!s || !s.questionStartedAt) return QUESTION_SECONDS;
+  const elapsed = (Date.now() - s.questionStartedAt)/1000;
+  return Math.max(0, Math.ceil(QUESTION_SECONDS - elapsed));
+}
+function elapsedMs(){
+  const s = state.session;
+  if(!s || !s.questionStartedAt) return 0;
+  return Date.now() - s.questionStartedAt;
+}
+
+// ---------- clock ring ----------
+function clockRing(remaining, total, size){
+  size = size || 130;
+  const r = size/2 - 10;
+  const c = 2*Math.PI*r;
+  const frac = Math.max(0, Math.min(1, remaining/total));
+  const offset = c * (1-frac);
+  const color = remaining <= 10 ? 'var(--coral)' : (remaining <= 30 ? 'var(--amber)' : 'var(--cyan)');
+  return `
+  <div class="clockwrap">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8"/>
+      <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="8"
+        stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"
+        transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dashoffset .25s linear"/>
+      <text x="50%" y="53%" text-anchor="middle" fill="var(--paper)" font-family="Space Mono, monospace"
+        font-size="${size*0.26}" font-weight="700" dy=".05em">${remaining}</text>
+    </svg>
+    <div class="clocklabel">seconds left</div>
+  </div>`;
 }
 
 // ---------- render ----------
@@ -548,26 +510,28 @@ function render(){
   app.innerHTML = topbar() + '<div class="screen">' + screenHTML() + '</div>';
   afterRender();
 }
+
 function topbar(){
   return `<div class="topbar">
-    <div class="brand">blueprint<span class="dot">•</span>round</div>
-    ${state.session ? `<span class="pill ${state.session.phase==='round'?'live':''}">${state.role==='host'?'Hosting':'Playing'} · ${state.code}</span>` : ''}
+    <div class="brand">shot<span class="dot">•</span>clock</div>
+    ${state.session ? `<span class="pill ${state.session.phase==='question'?'live':''}">${state.role==='host'?'Hosting':'Playing'} · ${state.code}</span>` : ''}
   </div>`;
 }
+
 function screenHTML(){
   switch(state.screen){
     case 'landing': return landingScreen();
-    case 'host-problems': return hostProblemsScreen();
-    case 'host-timer': return hostTimerScreen();
+    case 'host-setup': return hostSetupScreen();
     case 'host-lobby': return hostLobbyScreen();
-    case 'host-round': return hostRoundScreen();
-    case 'host-ended': return hostEndedScreen();
+    case 'host-question': return hostQuestionScreen();
+    case 'host-reveal': return hostRevealScreen();
+    case 'host-finished': return hostFinishedScreen();
     case 'team-join': return teamJoinScreen();
     case 'team-wait': return teamWaitScreen();
-    case 'team-round': return teamRoundScreen();
-    case 'team-problem': return teamProblemScreen();
-    case 'team-finish': return teamFinishScreen();
-    case 'team-ended': return teamEndedScreen();
+    case 'team-question': return teamQuestionScreen();
+    case 'team-answered': return teamAnsweredScreen();
+    case 'team-reveal': return teamRevealScreen();
+    case 'team-finished': return teamFinishedScreen();
     default: return landingScreen();
   }
 }
@@ -575,795 +539,941 @@ function screenHTML(){
 function landingScreen(){
   return `
   <div class="landing-hero">
-    <div class="eyebrow">IoTVerse · Round 1</div>
-    <h1>Design the chain.<br><span class="accent" style="color:var(--amber);">Beat the clock.</span></h1>
-    <p>Pick the right sensor, choose your connectivity, and lay out the pipeline: Sensor → Connectivity → Cloud → Data → Action. Every design is scored live against the judging rubric.</p>
+    <div class="eyebrow">Live team quiz</div>
+    <h1>First to know it.<br><span class="accent">First to score it.</span></h1>
+    <p>Run a multiple-choice quiz where every team scans in on their own phone. Ninety seconds on the clock per question — answer fast and correct to bank the most points.</p>
   </div>
   <div class="role-grid">
     <div class="role-card" data-action="go-host">
-      <div class="tag">Run a round</div>
+      <div class="tag">Run a session</div>
       <h3>Host</h3>
-      <p>Pick which problems to include, set the round timer, and put a QR code on the big screen.</p>
+      <p>Build the question set, put a QR code on the big screen, and control the pace of the round.</p>
     </div>
     <div class="role-card" data-action="go-team-join">
-      <div class="tag">Join a round</div>
+      <div class="tag">Join a session</div>
       <h3>Team</h3>
-      <p>Scan the host's QR code or enter the 4-digit code to build your chains from your own device.</p>
+      <p>Scan the host's QR code or enter the 4-digit code to answer on your own device.</p>
     </div>
   </div>
-  ${state.error ? `<p style="color:var(--coral);text-align:center;margin-top:18px;">${state.error}</p>`:''}
+  ${state.error ? `<p class="footnote" style="color:var(--coral);text-align:center;margin-top:20px;">${state.error}</p>`:''}
   `;
 }
 
-// ---------- HOST: pick problems ----------
-function hostProblemsScreen(){
-  const sel = state.draftProblemIds;
+// ---------- HOST: setup ----------
+function hostSetupScreen(){
+  const s = state.session;
+  const q = state.newQ;
+  const isTF = q.type === 'truefalse';
+  const isThisOrThat = q.type === 'thisorthat';
+  const isPicture = q.type === 'picture';
+  const isEmoji = q.type === 'emoji';
+  const isAnagram = q.type === 'anagram';
+  const needsFourOptions = !isTF && !isThisOrThat;
+
   return `
-  <div class="eyebrow">Step 1 of 2</div>
-  <h2 style="margin-bottom:6px;">Choose problems for this round</h2>
-  <p style="color:var(--slate);margin:0 0 18px;">${sel.length} selected</p>
-  <div class="row" style="margin-bottom:14px;">
-    <button class="btn-ghost btn btn-sm" data-action="select-all-problems">Select all 8</button>
-    <button class="btn-ghost btn btn-sm" data-action="clear-problems">Clear</button>
-  </div>
-  ${PROBLEMS.map(p=>`
-    <div class="problem-check ${sel.includes(p.id)?'on':''}" data-action="toggle-problem" data-id="${p.id}">
-      <div class="box">${sel.includes(p.id)?'✓':''}</div>
-      <div>
-        <h4>${p.id}. ${escapeHtml(p.title)}</h4>
-        <p>${escapeHtml(p.card)}</p>
+  <div class="eyebrow">Question set</div>
+  <h2 style="margin-bottom:18px;">Build your quiz — ${s.questions.length} question${s.questions.length===1?'':'s'} added</h2>
+
+  <div class="card">
+    <div class="field">
+      <label>Round type</label>
+      <select id="qtype">
+        <option value="mcq" ${q.type==='mcq'?'selected':''}>❓ Multiple Choice</option>
+        <option value="truefalse" ${q.type==='truefalse'?'selected':''}>⚡ True or False Blitz — "Fact or Fried Circuit"</option>
+        <option value="picture" ${q.type==='picture'?'selected':''}>🖼️ Picture Reveal — "Guess the Gadget"</option>
+        <option value="emoji" ${q.type==='emoji'?'selected':''}>🔤 Emoji Riddle — "IoT in Emojis"</option>
+        <option value="oddone" ${q.type==='oddone'?'selected':''}>🧩 Odd One Out</option>
+        <option value="anagram" ${q.type==='anagram'?'selected':''}>🔁 Anagram Sprint</option>
+        <option value="thisorthat" ${q.type==='thisorthat'?'selected':''}>🎭 This or That — IoT Debates (no right answer, just laughs)</option>
+        <option value="bluff" ${q.type==='bluff'?'selected':''}>🕵️ Bluff Round — Spot the Fake Fact</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>${isThisOrThat ? 'Prompt (e.g. "Which would you rather deal with?")' : isBluffText(q.type) ? 'Prompt (e.g. "Which fact is real?")' : 'Question'}</label>
+      <input type="text" id="qtext" placeholder="e.g. What is the capital of Japan?" value="${escapeHtml(q.text)}">
+    </div>
+
+    ${isPicture ? `
+    <div class="field">
+      <label>Image URL</label>
+      <input type="text" id="imageUrl" placeholder="https://..." value="${escapeHtml(q.imageUrl)}">
+    </div>` : ''}
+
+    ${isEmoji ? `
+    <div class="field">
+      <label>Emoji clue</label>
+      <input type="text" id="emojiClue" placeholder="e.g. 🌡️📡☁️📱" value="${escapeHtml(q.emojiClue)}">
+    </div>` : ''}
+
+    ${isAnagram ? `
+    <div class="field">
+      <label>Scrambled word/phrase</label>
+      <input type="text" id="scrambled" placeholder="e.g. OSNRSE" value="${escapeHtml(q.scrambled)}" style="text-transform:uppercase;">
+    </div>` : ''}
+
+    ${isTF ? `
+    <div class="field">
+      <label>Correct answer</label>
+      <select id="tfSelect">
+        <option value="true" ${q.tfAnswer?'selected':''}>True</option>
+        <option value="false" ${!q.tfAnswer?'selected':''}>False</option>
+      </select>
+    </div>` : ''}
+
+    ${isThisOrThat ? `
+    <div class="row">
+      <div class="field" style="flex:1;min-width:200px;">
+        <label>Option A</label>
+        <input type="text" id="optionA" placeholder="e.g. Sensor with no signal" value="${escapeHtml(q.optionA)}">
+      </div>
+      <div class="field" style="flex:1;min-width:200px;">
+        <label>Option B</label>
+        <input type="text" id="optionB" placeholder="e.g. Cloud with no data" value="${escapeHtml(q.optionB)}">
       </div>
     </div>
-  `).join('')}
+    <p class="footnote" style="margin-top:-8px;margin-bottom:16px;">This or That is for laughs only — every team gets 0 points, results show as a live percentage split.</p>
+    ` : ''}
+
+    ${needsFourOptions ? `
+    <div class="row">
+      ${[0,1,2,3].map(i=>`
+        <div class="field" style="flex:1;min-width:200px;">
+          <label>Option ${String.fromCharCode(65+i)} ${i===q.correct?'· correct':''}</label>
+          <input type="text" id="opt${i}" placeholder="Option ${String.fromCharCode(65+i)}" value="${escapeHtml(q.opts[i])}">
+        </div>
+      `).join('')}
+    </div>
+    <div class="field">
+      <label>Correct answer</label>
+      <select id="correctSelect">
+        ${[0,1,2,3].map(i=>`<option value="${i}" ${i===q.correct?'selected':''}>Option ${String.fromCharCode(65+i)}</option>`).join('')}
+      </select>
+    </div>` : ''}
+
+    ${!isThisOrThat ? `
+    <div class="field" style="display:flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="doublePoints" style="width:auto;" ${q.doublePoints?'checked':''}>
+      <label style="margin:0;">🎯 System Overload — Double or Nothing (wrong costs 500 pts, correct pays double)</label>
+    </div>` : ''}
+
+    <button class="btn" data-action="add-question">+ Add Question</button>
+  </div>
+
   <div class="divider"></div>
-  <button class="btn btn-cyan" data-action="go-host-timer" ${sel.length===0?'disabled':''}>Continue →</button>
+
+  ${s.questions.length ? `<div class="card">
+    ${s.questions.map((qq,idx)=>`
+      <div class="qlist-item">
+        <div>
+          <p>${idx+1}. ${escapeHtml(qq.text)} <span class="pill" style="margin-left:6px;">${roundTypeLabel(qq)}</span> ${qq.doublePoints?'<span class="overload-badge" style="margin-left:6px;">🎯 Overload</span>':''}</p>
+          <div class="opts-mini">${qlistCorrectSummary(qq)}</div>
+        </div>
+        <button class="btn-ghost btn" style="padding:8px 14px;font-size:12px;" data-action="del-question" data-idx="${idx}">Remove</button>
+      </div>
+    `).join('')}
+  </div>` : `<div class="empty">No questions yet — add at least one to open the lobby.</div>`}
+
+  <div class="divider"></div>
+  <button class="btn btn-cyan" data-action="open-lobby" ${s.questions.length===0?'disabled':''}>Open Lobby &amp; Show QR →</button>
   `;
 }
-
-function hostTimerScreen(){
-  return `
-  <div class="eyebrow">Step 2 of 2</div>
-  <h2 style="margin-bottom:18px;">Set the round timer</h2>
-  <div class="card" style="max-width:360px;">
-    <div class="field">
-      <label>Minutes for the whole round</label>
-      <input type="number" id="roundMinutes" min="1" max="120" value="${state.draftMinutes}">
-    </div>
-    <p class="footnote" style="color:var(--slate);font-size:13px;">All teams share this countdown. They can attempt problems in any order and submit each one whenever ready — until the clock runs out.</p>
-  </div>
-  <div class="divider"></div>
-  <div class="row">
-    <button class="btn-ghost btn" data-action="back-to-problems">← Back</button>
-    <button class="btn btn-cyan" data-action="open-lobby">Open Lobby &amp; Show QR →</button>
-  </div>
-  `;
+function isBluffText(type){ return type==='bluff'; }
+function qlistCorrectSummary(qq){
+  if(qq.type==='truefalse') return 'Correct: ' + (qq.tfAnswer?'True':'False');
+  if(qq.type==='thisorthat') return `Poll: "${escapeHtml(qq.optionA)}" vs "${escapeHtml(qq.optionB)}" — no correct answer`;
+  return 'Correct: ' + String.fromCharCode(65+qq.correct) + ' — ' + escapeHtml(qq.options[qq.correct]);
 }
 
 // ---------- HOST: lobby ----------
 function hostLobbyScreen(){
   const s = state.session;
   const teamIds = Object.keys(s.teams);
+  const joinUrl = location.origin + location.pathname + '?session=' + state.code;
   return `
-  <div class="row" style="align-items:flex-start;gap:26px;">
-    <div class="card center" style="flex:1;min-width:250px;">
+  <div class="row" style="align-items:flex-start;gap:28px;">
+    <div class="card center" style="flex:1;min-width:260px;">
       <div class="eyebrow">Scan to join</div>
       <div id="qrHolder" class="qr-box"></div>
-      <div style="margin-top:14px;" class="code-display">${state.code}</div>
-      <p style="color:var(--slate);font-size:13px;">Or open this page and enter the code above.</p>
+      <div style="margin-top:16px;" class="code-display">${state.code}</div>
+      <p class="footnote">Or open this page and enter the code above.</p>
     </div>
-    <div class="card" style="flex:1.3;min-width:250px;">
+    <div class="card" style="flex:1.3;min-width:260px;">
       <div class="eyebrow">Teams in the room</div>
       <h2 style="margin-bottom:14px;">${teamIds.length} joined</h2>
-      ${teamIds.length ? teamIds.map(id=>`<span class="team-chip">${escapeHtml(s.teams[id])}</span>`).join('') : `<div class="empty">Waiting for teams to scan in…</div>`}
+      ${teamIds.length ? teamIds.map(id=>`<div class="team-chip" style="margin:4px 6px 4px 0;">${escapeHtml(s.teams[id])}</div>`).join('') : `<div class="empty">Waiting for teams to scan in…</div>`}
       <div class="divider"></div>
-      <p style="color:var(--slate);font-size:13px;">${s.problemIds.length} problem${s.problemIds.length===1?'':'s'} loaded · ${s.roundDurationMs/60000} min round · each team starts with a shared 100 IoT-Coin budget</p>
-      <button class="btn btn-block" style="margin-top:14px;" data-action="start-round" ${teamIds.length===0?'disabled':''}>Start Round →</button>
-      ${teamIds.length===0 ? `<p style="color:var(--slate);font-size:12.5px;margin-top:6px;">At least one team must join first.</p>`:''}
+      <p class="footnote">${s.questions.length} question${s.questions.length===1?'':'s'} loaded · ${QUESTION_SECONDS}s per question</p>
+      <button class="btn btn-block" style="margin-top:14px;" data-action="start-quiz" ${teamIds.length===0?'disabled':''}>Start Quiz →</button>
+      ${teamIds.length===0 ? `<p class="footnote">At least one team must join first.</p>`:''}
     </div>
   </div>
   `;
 }
 
-// ---------- HOST: round ----------
-function hostRoundScreen(){
+// ---------- shared: render a question body for any round type (spectator/no interaction) ----------
+// A short "clue" line shown above the answer options for round types that need one.
+function questionExtraClue(q){
+  if(q.type === 'emoji') return `<div style="font-size:42px;letter-spacing:8px;margin:14px 0;text-align:center;">${escapeHtml(q.emojiClue)}</div>`;
+  if(q.type === 'anagram') return `<div class="mono" style="font-size:30px;letter-spacing:5px;margin:14px 0;text-align:center;color:var(--amber);font-weight:700;">${escapeHtml(q.scrambled)}</div>`;
+  return '';
+}
+
+function questionBodyStatic(q, rem){
+  if(q.type === 'truefalse'){
+    return `<div class="tf-grid">
+      <div class="tf-opt true-opt" style="cursor:default;">✓ True</div>
+      <div class="tf-opt false-opt" style="cursor:default;">✗ False</div>
+    </div>`;
+  }
+  if(q.type === 'thisorthat'){
+    return `<div class="tf-grid">
+      <div class="tf-opt true-opt" style="cursor:default;">${escapeHtml(q.optionA)}</div>
+      <div class="tf-opt false-opt" style="cursor:default;">${escapeHtml(q.optionB)}</div>
+    </div>`;
+  }
+  const clue = questionExtraClue(q);
+  if(q.type === 'picture'){
+    const blur = Math.max(0, Math.min(20, Math.round(rem/QUESTION_SECONDS*20)));
+    return `<div class="pic-frame"><img src="${escapeHtml(q.imageUrl)}" style="filter:blur(${blur}px);" alt=""></div>
+    <div class="opt-grid">
+      ${q.options.map((opt,i)=>`
+        <div class="opt opt-${i}" style="cursor:default;">
+          <span class="badge">${String.fromCharCode(65+i)}</span><span>${escapeHtml(opt)}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+  return clue + `<div class="opt-grid">
+    ${q.options.map((opt,i)=>`
+      <div class="opt opt-${i}" style="cursor:default;">
+        <span class="badge">${String.fromCharCode(65+i)}</span><span>${escapeHtml(opt)}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ---------- HOST: question ----------
+function hostQuestionScreen(){
   const s = state.session;
-  const rem = roundRemainingMs();
-  const frac = rem / s.roundDurationMs;
-  const color = frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)');
-  const teamIds = Object.keys(s.teams);
-  const totalProblems = s.problemIds.length;
+  const idx = s.currentIndex;
+  const q = s.questions[idx];
+  const rem = remainingSeconds();
+  const answersForQ = s.answers[idx] || {};
+  const answeredCount = Object.keys(answersForQ).length;
+  const totalTeams = Object.keys(s.teams).length;
+
   return `
-  <div class="card center" style="margin-bottom:20px;">
-    <div class="eyebrow">Time remaining</div>
-    <div class="mono" style="font-size:56px;color:${color};font-weight:700;">${fmt(rem)}</div>
+  <div class="qbanner">
+    <div>
+      <div class="qnum">Question ${idx+1} of ${s.questions.length} · ${roundTypeLabel(q)}</div>
+      ${q.doublePoints ? `<div class="overload-badge">🎯 System Overload — Double or Nothing</div>` : ''}
+      <div class="qtext">${escapeHtml(q.text)}</div>
+    </div>
+    ${clockRing(rem, QUESTION_SECONDS, 96)}
   </div>
-  <div class="card">
-    <div class="eyebrow">Live progress</div>
-    <table><thead><tr><th>Team</th><th>Submitted</th><th>IoT-Coins left</th><th>Score</th></tr></thead><tbody>
-      ${teamIds.map(id=>{
-        const subs = (s.submissions[id]||{});
-        const done = Object.keys(subs).length;
-        const wallet = s.wallets[id] || {remaining:100};
-        return `<tr><td>${escapeHtml(s.teams[id])}</td><td>${done} / ${totalProblems}</td><td class="mono" style="color:${wallet.remaining<0?'var(--coral)':'var(--paper)'};">${wallet.remaining}</td><td class="pts">${s.scores[id]||0}</td></tr>`;
-      }).join('')}
-    </tbody></table>
-  </div>
+  ${questionBodyStatic(q, rem)}
   <div class="divider"></div>
-  <button class="btn btn-coral" data-action="end-round-now">End Round Now</button>
+  <div class="row" style="justify-content:space-between;align-items:center;">
+    <p class="footnote" style="margin:0;">${answeredCount} / ${totalTeams} teams have answered${totalTeams>0 && answeredCount<totalTeams ? ' — results show automatically once everyone answers' : ''}</p>
+    <button class="btn" data-action="reveal-now">${rem<=0? 'Show Results →' : 'End Early & Reveal →'}</button>
+  </div>
   `;
 }
 
-function hostEndedScreen(){
+// ---------- shared: render the "correct answer" reference block for reveal screens ----------
+function revealAnswerBlock(q, s, idx){
+  if(q.type === 'truefalse'){
+    return `<div class="tf-grid">
+      <div class="tf-opt true-opt ${q.tfAnswer?'correct':''}" style="cursor:default;">✓ True${q.tfAnswer?' ✓':''}</div>
+      <div class="tf-opt false-opt ${!q.tfAnswer?'correct':''}" style="cursor:default;">✗ False${!q.tfAnswer?' ✓':''}</div>
+    </div>`;
+  }
+  if(q.type === 'thisorthat'){
+    const answersForQ = (s.answers && s.answers[idx]) || {};
+    const vals = Object.values(answersForQ);
+    const total = vals.length || 1;
+    const countA = vals.filter(a=>a.selected==='A').length;
+    const countB = vals.filter(a=>a.selected==='B').length;
+    const pctA = Math.round(countA/total*100);
+    const pctB = Math.round(countB/total*100);
+    return `<div class="tf-grid">
+      <div class="tf-opt true-opt" style="cursor:default;flex-direction:column;gap:4px;">
+        <span>${escapeHtml(q.optionA)}</span><span style="font-size:26px;">${pctA}%</span>
+      </div>
+      <div class="tf-opt false-opt" style="cursor:default;flex-direction:column;gap:4px;">
+        <span>${escapeHtml(q.optionB)}</span><span style="font-size:26px;">${pctB}%</span>
+      </div>
+    </div>`;
+  }
+  const clue = questionExtraClue(q);
+  const imgBlock = q.type === 'picture' ? `<div class="pic-frame"><img src="${escapeHtml(q.imageUrl)}" alt=""></div>` : '';
+  return imgBlock + clue + `<div class="opt-grid">
+    ${q.options.map((opt,i)=>`
+      <div class="opt opt-${i} ${i===q.correct?'correct':''}" style="cursor:default;">
+        <span class="badge">${String.fromCharCode(65+i)}</span><span>${escapeHtml(opt)}${i===q.correct?' ✓':''}</span>
+      </div>`).join('')}
+  </div>`;
+}
+function formatAnswer(q, selected){
+  if(q.type === 'truefalse') return selected ? 'True' : 'False';
+  if(q.type === 'thisorthat') return selected === 'A' ? q.optionA : q.optionB;
+  return String.fromCharCode(65+selected);
+}
+
+// ---------- HOST: reveal ----------
+function hostRevealScreen(){
   const s = state.session;
+  const idx = s.currentIndex;
+  const q = s.questions[idx];
+  const answersForQ = s.answers[idx] || {};
+  const rows = Object.keys(answersForQ).map(tid=>({
+    name: s.teams[tid] || 'Unknown',
+    ...answersForQ[tid]
+  })).sort((a,b)=> b.points - a.points);
+  const isLast = idx >= s.questions.length -1;
+  const slowest = rows.length ? rows[rows.length-1] : null;
+  const roastLine = ROASTS[idx % ROASTS.length];
+
+  return `
+  <div class="qbanner">
+    <div>
+      <div class="qnum">Question ${idx+1} of ${s.questions.length} — Results</div>
+      ${q.doublePoints ? `<div class="overload-badge">🎯 System Overload — Double or Nothing</div>` : ''}
+      <div class="qtext">${escapeHtml(q.text)}</div>
+    </div>
+  </div>
+  ${revealAnswerBlock(q, s, idx)}
+  <div class="divider"></div>
+  <h3 style="margin-bottom:10px;">This round</h3>
+  ${rows.length ? `<table><thead><tr><th>Team</th><th>Answer</th><th>Time</th><th>Points</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr>
+      <td>${escapeHtml(r.name)}${r.frozen?' ❄️':''}${r.streakBefore>=2 && r.correct?' 🔥':''}</td>
+      <td>${formatAnswer(q,r.selected)} ${r.correct===null?'':(r.correct?'✓':'✗')}</td>
+      <td class="mono">${(r.timeMs/1000).toFixed(1)}s</td>
+      <td class="pts ${r.points===0?'zero':''}">${r.points>=0?'+':''}${r.points}</td>
+    </tr>`).join('')}
+  </tbody></table>
+  ${(q.type !== 'thisorthat' && slowest && rows.length>1) ? `<div class="roast">${escapeHtml(slowest.name)}: ${roastLine}</div>` : ''}
+  ` : `<div class="empty">No team answered in time.</div>`}
+  <div class="divider"></div>
+  <h3 style="margin-bottom:10px;">Leaderboard</h3>
+  ${leaderboardHTML(s)}
+  <div class="divider"></div>
+  <button class="btn" data-action="next-question">${isLast? 'Finish Quiz →' : 'Next Question →'}</button>
+  `;
+}
+
+function hostFinishedScreen(){
+  const s = state.session;
+  const ids = Object.keys(s.teams);
+  const ranked = ids.map(id=>({id, name:s.teams[id], score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
   return `
   <div class="status-banner">
-    <div class="eyebrow">Round complete</div>
-    <h2>Final leaderboard</h2>
+    <div class="eyebrow">Quiz complete</div>
+    <h2>Final network topology</h2>
   </div>
+  ${networkTopologyHTML(ranked)}
+  <div class="divider"></div>
+  <h3 style="margin-bottom:10px;">Full leaderboard</h3>
   <div class="card">${leaderboardHTML(s)}</div>
-  <div class="center" style="margin-top:22px;">
-    <button class="btn-ghost btn" data-action="reset">Start a New Round</button>
+  <div class="center" style="margin-top:24px;">
+    <button class="btn-ghost btn" data-action="reset">Start a New Session</button>
   </div>
+  `;
+}
+
+// Podium reimagined as a network diagram: rank 1 is the glowing central hub,
+// everyone else branches off as connected nodes — sized/colored by rank.
+function networkTopologyHTML(ranked){
+  if(ranked.length===0) return `<div class="empty">No teams yet.</div>`;
+  const hub = ranked[0];
+  const spokes = ranked.slice(1,6); // show up to 5 orbiting nodes for clarity
+  const size = 420;
+  const cx = size/2, cy = size/2 - 6;
+  const hubR = 46, spokeR = 30, orbit = 150;
+  const n = spokes.length;
+
+  const nodes = spokes.map((r,i)=>{
+    const angle = n>0 ? (i/n)*Math.PI*2 - Math.PI/2 : 0;
+    return { ...r, x: cx + orbit*Math.cos(angle), y: cy + orbit*Math.sin(angle), rank: i+2 };
+  });
+
+  const lines = nodes.map(node=>
+    `<line x1="${cx}" y1="${cy}" x2="${node.x.toFixed(1)}" y2="${node.y.toFixed(1)}" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>`
+  ).join('');
+
+  const nodeColor = (i)=> i===0 ? '#C9CEDB' : i===1 ? '#E0A672' : '#3A3F52';
+
+  const circles = nodes.map((node,i)=>`
+    <circle cx="${node.x.toFixed(1)}" cy="${node.y.toFixed(1)}" r="${spokeR}" fill="${nodeColor(i)}" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+    <text x="${node.x.toFixed(1)}" y="${(node.y+spokeR+18).toFixed(1)}" text-anchor="middle" fill="var(--paper)" font-family="Space Grotesk, sans-serif" font-size="12" font-weight="700">${escapeHtml(node.name)}</text>
+    <text x="${node.x.toFixed(1)}" y="${(node.y+spokeR+33).toFixed(1)}" text-anchor="middle" fill="var(--slate)" font-family="Space Mono, monospace" font-size="10">${node.score} pts</text>
+  `).join('');
+
+  return `
+  <div class="center" style="overflow-x:auto;">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="max-width:100%;height:auto;">
+      ${lines}
+      <circle cx="${cx}" cy="${cy}" r="${hubR}" fill="var(--amber)" class="hub-pulse"/>
+      <text x="${cx}" y="${cy-4}" text-anchor="middle" fill="var(--ink)" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14">${escapeHtml(hub.name)}</text>
+      <text x="${cx}" y="${cy+15}" text-anchor="middle" fill="var(--ink)" font-family="Space Mono, monospace" font-size="12">${hub.score} pts</text>
+      ${circles}
+    </svg>
+  </div>
+  ${ranked.length>6 ? `<p class="footnote center" style="text-align:center;">+${ranked.length-6} more team${ranked.length-6===1?'':'s'} in the full leaderboard below</p>` : ''}
   `;
 }
 
 function leaderboardHTML(s){
   const ids = Object.keys(s.teams);
-  if(ids.length===0) return `<div class="empty">No teams yet.</div>`;
-  const ranked = ids.map(id=>({id,name:s.teams[id],score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  const ranked = ids.map(id=>({id, name:s.teams[id], score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  if(ranked.length===0) return `<div class="empty">No teams yet.</div>`;
   return ranked.map((r,i)=>`
     <div class="lead-row">
       <div class="lead-rank ${i===0?'gold':''}">${i+1}</div>
       <div class="lead-name">${escapeHtml(r.name)}</div>
       <div class="lead-score">${r.score} pts</div>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 
 // ---------- TEAM: join ----------
 function teamJoinScreen(){
   return `
   <div class="card" style="max-width:420px;margin:0 auto;">
-    <div class="eyebrow">Join a round</div>
+    <div class="eyebrow">Join a session</div>
     <h2 style="margin-bottom:18px;">Enter the room code</h2>
-    <div class="field"><label>Session code</label><input type="text" id="joinCode" maxlength="4" placeholder="1234" value="${escapeHtml(state.code||'')}"></div>
-    <div class="field"><label>Team name</label><input type="text" id="joinName" placeholder="e.g. The Signal Chasers"></div>
-    <button class="btn btn-block" data-action="join-session" ${state.joining?'disabled':''}>${state.joining?'Joining…':'Join →'}</button>
-    ${state.error ? `<p style="color:var(--coral);">${state.error}</p>`:''}
-  </div>`;
+    <div class="field">
+      <label>Session code</label>
+      <input type="text" id="joinCode" maxlength="4" placeholder="1234" value="${escapeHtml(state.code||'')}">
+    </div>
+    <div class="field">
+      <label>Team name</label>
+      <div class="row" style="gap:8px;">
+        <input type="text" id="joinName" placeholder="e.g. The Nightowls" style="flex:1;">
+        <button type="button" class="btn-ghost btn" style="padding:14px 16px;font-size:12px;white-space:nowrap;" data-action="suggest-name">🎲 Surprise Me</button>
+      </div>
+    </div>
+    <button class="btn btn-block" data-action="join-session">Join →</button>
+    ${state.error ? `<p class="footnote" style="color:var(--coral);">${state.error}</p>`:''}
+  </div>
+  `;
 }
 
 function teamWaitScreen(){
   const s = state.session;
-  return `<div class="status-banner">
+  return `
+  <div class="status-banner">
     <div class="eyebrow">You're in</div>
     <h2>${escapeHtml(state.teamName)}, get ready</h2>
-    <p>Waiting for the host to start the round — ${s.problemIds.length} problem${s.problemIds.length===1?'':'s'} loaded.</p>
-  </div>`;
-}
-
-function teamRoundScreen(){
-  const s = state.session;
-  const isLobby = s.phase === 'lobby';
-  const rem = roundRemainingMs();
-  const frac = isLobby ? 1 : rem / s.roundDurationMs;
-  const color = isLobby ? 'var(--amber)' : (frac<0.15?'var(--coral)':(frac<0.4?'var(--amber)':'var(--cyan)'));
-  const subs = s.submissions[state.teamId] || {};
-  const myScore = s.scores[state.teamId] || 0;
-  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
-
-  if(wallet.remaining <= 0 || (s.finished && s.finished[state.teamId])){
-    return teamFinishScreen();
-  }
-
-  return `
-  ${isLobby ? `<div class="status-banner" style="padding:10px 20px 22px;">
-    <div class="eyebrow">Joined successfully</div>
-    <h2>You're in, ${escapeHtml(state.teamName)}</h2>
-    <p>The quiz is ready. The host has not started the timer yet. You can review the problems now; the countdown begins when the host starts the round.</p>
-  </div>` : `
-  <div class="timebar-wrap">
-    <div class="timebar-track"><div class="timebar-fill" style="width:${Math.max(0,frac*100)}%;background:${color};"></div></div>
-    <div class="timebar-txt" style="color:${color};">${fmt(rem)}</div>
-  </div>`}
-  <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-    <h2>Your problems</h2>
-    <div class="row" style="gap:8px;">
-      <span class="pill" style="background:${wallet.remaining<0?'rgba(255,92,92,0.15)':'rgba(255,176,32,0.15)'};color:${wallet.remaining<0?'var(--coral)':'var(--amber)'};">💰 ${wallet.remaining} / 100 IoT-Coins</span>
-      <span class="pill live">Score: ${myScore}</span>
-    </div>
-  </div>
-  <div class="tile-grid">
-    ${s.problemIds.map(pid=>{
-      const p = PROBLEMS.find(x=>x.id===pid);
-      const done = subs[pid];
-      return `<div class="ptile ${done?'done':''}" data-action="open-problem" data-id="${pid}">
-        <div class="pnum">Problem ${pid}</div>
-        <h4>${escapeHtml(p.title)}</h4>
-        <div class="pstatus">${done ? 'Submitted · '+done.total+'/30' : 'Not started'}</div>
-      </div>`;
-    }).join('')}
+    <p>Waiting for the host to start question 1 of ${s.questions.length}…</p>
   </div>
   `;
 }
 
-// ---------- TEAM: problem workspace ----------
-function teamProblemScreen(){
+function teamQuestionScreen(){
   const s = state.session;
-  const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
+  const idx = s.currentIndex;
+  const q = s.questions[idx];
+  const rem = remainingSeconds();
+  const timeUp = rem <= 0;
+  const myPowerups = (s.powerups && s.powerups[state.teamId]) || {freeze:0, steal:0};
+  const alreadyFroze = myFreezeUsedThisQuestion(s, idx);
+  const rivalTeams = Object.keys(s.teams).filter(id=>id!==state.teamId);
+  const iAmFrozen = ((s.frozenTargets && s.frozenTargets[idx]) || []).includes(state.teamId);
 
-  if(s.phase==='ended'){
-    return teamEndedScreen();
-  }
-
-  if(wallet.remaining <= 0 || (s.finished && s.finished[state.teamId])){
-    return teamFinishScreen();
-  }
-
-  const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
-  if(!problem) return teamRoundScreen();
-
-  const existing = (s.submissions[state.teamId]||{})[problem.id];
-  const rem = roundRemainingMs();
-  const timeUp = rem<=0 || s.phase==='ended';
-
-  if(existing && !state.editingProblem){
-    return resultView(problem, existing, timeUp);
-  }
-  return builderView(problem, timeUp, s);
-}
-
-function resultView(problem, r, timeUp){
-  return `
-  <button class="btn-ghost btn btn-sm" data-action="back-to-problems" style="margin-bottom:16px;">← Back to problems</button>
-  <div class="card" style="margin-bottom:18px;"><div class="eyebrow">Problem ${problem.id}</div><h2>${escapeHtml(problem.title)}</h2><p class="scenario">"${escapeHtml(problem.card)}"</p></div>
-  <div class="card">
-    <div class="breakdown-row">
-      <div><div class="bl">Sensor — ${escapeHtml(r.sensorLabel)}</div><div class="bd">Accepted: ${problem.correctSensors.join(' or ')}</div></div>
-      <div class="bp ${r.sensorPts===0?'zero':''}">+${r.sensorPts}/10</div>
-    </div>
-    <div class="breakdown-row">
-      <div><div class="bl">Connectivity — ${escapeHtml(r.connLabel)} <span class="badge-v ${r.connValidity}">${r.connValidity}</span></div><div class="bd">${escapeHtml(r.connReason)}</div></div>
-      <div class="bp ${r.connPts===0?'zero':''}">+${r.connPts}/10</div>
-    </div>
-    <div class="breakdown-row">
-      <div><div class="bl">Budget — this design cost ${r.coinCost} IoT-Coins</div><div class="bd">Connectivity base cost${r.connValidity==='acceptable'?' + trade-off penalty':''}. Running total after this problem: <strong style="color:${r.runningAfter>100?'var(--coral)':'var(--paper)'};">${r.runningAfter} / 100</strong></div></div>
-      <div class="bp ${r.budgetPts===0?'zero':''}">+${r.budgetPts}/5</div>
-    </div>
-    <div class="breakdown-row">
-      <div><div class="bl">Chain order</div><div class="bd">Sensor → Connectivity → Cloud → Data → Action${r.chainPts<5?` — ${5-r.chainPts} slot${5-r.chainPts===1?'':'s'} out of place`:''}</div></div>
-      <div class="bp ${r.chainPts===0?'zero':''}">+${r.chainPts}/5</div>
-    </div>
-  </div>
-  <div class="card center" style="margin-top:16px;">
-    <div class="eyebrow">Total</div>
-    <div class="mono" style="font-size:38px;color:var(--cyan);font-weight:700;">${r.total} / 30</div>
-  </div>
-  ${timeUp
-    ? `<p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">Round has ended — designs are locked.</p>`
-    : `<p style="color:var(--slate);text-align:center;margin-top:16px;font-size:13px;">Design submitted. This problem is complete and can no longer be redesigned.</p>`}
-  `;
-}
-
-function builderView(problem, timeUp, s){
-  const d = state.draft;
-  const bothChosen = d.sensor && d.connKey;
-  const filledSlots = state.chainSeqIds.length;
-  const chipById = id => state.chainPoolFull.find(c=>c.id===id);
-  const poolChips = state.chainPoolFull.filter(c=>!state.chainSeqIds.includes(c.id));
-
-  const existingCostForThisProblem = ((s.submissions[state.teamId]||{})[problem.id]||{}).coinCost || 0;
-  const walletBefore = (s.wallets[state.teamId]||{spent:0}).spent - existingCostForThisProblem;
-  let costPreview = '';
-  if(d.connKey){
-    const connOpt = problem.connectivity.find(c=>c.key===d.connKey);
-    const cost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
-    const projected = walletBefore + cost;
-    const over = projected > 100;
-    costPreview = `<p style="margin:10px 0 0;font-size:13px;color:${over?'var(--coral)':'var(--slate)'};">
-      This choice costs <strong style="color:${over?'var(--coral)':'var(--amber)'};">${cost} IoT-Coins</strong>.
-      Projected total spend across your submitted problems: <strong>${projected} / 100</strong>${over?' — over budget, this design will lose the 5 budget points':''}.
-    </p>`;
-  }
-
-  return `
-  <button class="btn-ghost btn btn-sm" data-action="back-to-problems" style="margin-bottom:16px;">← Back to problems</button>
-  <div class="card" style="margin-bottom:18px;"><div class="eyebrow">Problem ${problem.id}</div><h2>${escapeHtml(problem.title)}</h2><p class="scenario">"${escapeHtml(problem.card)}"</p></div>
-
-  ${timeUp ? `<div class="card center"><p style="color:var(--coral);margin:0;">Time's up — this design can no longer be submitted.</p></div>` : `
-
-  <div class="card" style="margin-bottom:16px;">
-    <div class="eyebrow">Step 1 — Choose your sensor</div>
-    <div class="opt-grid" style="margin-top:12px;">
-      ${problem.sensorOptions.map(o=>`
-        <button class="selopt ${d.sensor && d.sensor.label===o.label ?'sel':''}" data-action="pick-sensor" data-label="${escapeHtml(o.label)}">
-          <span class="em">${o.emoji}</span><span>${escapeHtml(o.label)}</span>
+  let body;
+  if(q.type === 'truefalse'){
+    body = `<div class="tf-grid">
+      <button class="tf-opt true-opt" data-action="submit-answer" data-idx="true" ${timeUp?'disabled':''}>✓ True</button>
+      <button class="tf-opt false-opt" data-action="submit-answer" data-idx="false" ${timeUp?'disabled':''}>✗ False</button>
+    </div>`;
+  } else if(q.type === 'thisorthat'){
+    body = `<div class="tf-grid">
+      <button class="tf-opt true-opt" data-action="submit-answer" data-idx="A" ${timeUp?'disabled':''}>${escapeHtml(q.optionA)}</button>
+      <button class="tf-opt false-opt" data-action="submit-answer" data-idx="B" ${timeUp?'disabled':''}>${escapeHtml(q.optionB)}</button>
+    </div>`;
+  } else if(q.type === 'picture'){
+    const blur = Math.max(0, Math.min(20, Math.round(rem/QUESTION_SECONDS*20)));
+    body = `<div class="pic-frame"><img src="${escapeHtml(q.imageUrl)}" style="filter:blur(${blur}px);" alt=""></div>
+    <div class="opt-grid">
+      ${q.options.map((opt,i)=>`
+        <button class="opt opt-${i}" data-action="submit-answer" data-idx="${i}" ${timeUp?'disabled':''}>
+          <span class="badge">${String.fromCharCode(65+i)}</span><span>${escapeHtml(opt)}</span>
         </button>`).join('')}
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:16px;">
-    <div class="eyebrow">Step 2 — Choose your connectivity</div>
-    <div class="opt-grid" style="margin-top:12px;">
-      ${problem.connectivity.map(c=>`
-        <button class="selopt ${d.connKey===c.key?'sel':''}" data-action="pick-conn" data-key="${c.key}">
-          <span class="em">${c.emoji}</span><span>${escapeHtml(c.label)}</span><span class="costbadge">${c.baseCost} coins</span>
+    </div>`;
+  } else {
+    body = questionExtraClue(q) + `<div class="opt-grid">
+      ${q.options.map((opt,i)=>`
+        <button class="opt opt-${i}" data-action="submit-answer" data-idx="${i}" ${timeUp?'disabled':''}>
+          <span class="badge">${String.fromCharCode(65+i)}</span><span>${escapeHtml(opt)}</span>
         </button>`).join('')}
+    </div>`;
+  }
+
+  return `
+  <div class="qbanner">
+    <div>
+      <div class="qnum">Question ${idx+1} of ${s.questions.length} · ${roundTypeLabel(q)}</div>
+      ${q.doublePoints ? `<div class="overload-badge">🎯 System Overload — Double or Nothing</div>` : ''}
+      <div class="qtext">${escapeHtml(q.text)}</div>
     </div>
-    ${costPreview}
+    ${clockRing(rem, QUESTION_SECONDS, 88)}
   </div>
-
-  ${bothChosen ? `
-  <div class="card">
-    <div class="eyebrow">Step 3 — Arrange the pipeline</div>
-    <div class="chainzone">
-      <div class="slots">
-        ${[0,1,2,3,4].map(i=>{
-          const id = state.chainSeqIds[i];
-          const chip = id? chipById(id): null;
-          return `<div class="slot ${chip?'filled':''}">${chip? chip.emoji+' '+escapeHtml(chip.label) : (i+1)}</div>`;
-        }).join('')}
-      </div>
-      <div class="pool">
-        ${poolChips.map(c=>`<button class="chip" data-action="add-chip" data-id="${c.id}">${c.emoji} ${escapeHtml(c.label)}</button>`).join('')}
-      </div>
-      ${filledSlots>0 ? `<div style="margin-top:14px;"><button class="btn-ghost btn btn-sm" data-action="reset-chain">Reset Order</button></div>` : ''}
-    </div>
-  </div>` : `<div class="empty">Pick a sensor and a connectivity option to unlock the pipeline builder.</div>`}
-
-  <div class="divider"></div>
-  <button class="btn btn-cyan" data-action="submit-design" ${(!bothChosen || filledSlots<5)?'disabled':''}>Submit Design →</button>
-  `}
+  ${iAmFrozen ? `<div class="roast" style="background:rgba(63,224,197,0.1);border-color:rgba(63,224,197,0.3);color:var(--cyan);">❄️ Your frequency's been jammed this round — your timing will be scored at worst-case, so just try to answer correctly!</div>` : ''}
+  ${body}
+  ${(!timeUp && q.type!=='thisorthat' && myPowerups.freeze > 0 && rivalTeams.length > 0 && !alreadyFroze) ? `
+  <div class="powerup-row">
+    ${rivalTeams.map(tid=>`<button class="btn-power" data-action="use-freeze" data-target="${tid}">❄️ Jam the Frequency — ${escapeHtml(s.teams[tid])}</button>`).join('')}
+  </div>
+  <p class="footnote" style="margin-top:6px;">You have ${myPowerups.freeze} freeze charge${myPowerups.freeze===1?'':'s'} left.</p>
+  ` : ''}
+  ${alreadyFroze ? `<p class="footnote" style="margin-top:10px;">❄️ Frequency jam already used this round.</p>` : ''}
+  ${timeUp ? `<p class="footnote center" style="text-align:center;margin-top:14px;">Time's up — waiting for the host to reveal results.</p>`:''}
   `;
 }
 
-function teamFinishScreen(){
-  const s = state.session;
-  const wallet = s.wallets[state.teamId] || {spent:100, remaining:0};
-  const myScore = s.scores[state.teamId] || 0;
+// has THIS team already spent a freeze charge on the current question index?
+function myFreezeUsedThisQuestion(s, idx){
+  return !!((s.freezeUsedBy && s.freezeUsedBy[idx] && s.freezeUsedBy[idx].includes(state.teamId)));
+}
 
+function teamAnsweredScreen(){
+  const s = state.session;
+  const idx = s.currentIndex;
+  const q = s.questions[idx];
+  const mine = (s.answers[idx]||{})[state.teamId];
+  const rem = remainingSeconds();
   return `
   <div class="status-banner">
-    <div class="eyebrow">100 IoT-Coins used</div>
-    <h2>You're finished!</h2>
-    <p>Your team has used the complete 100 IoT-Coin budget.</p>
-  </div>
-
-  <div class="card center" style="max-width:520px;margin:0 auto;">
-    <div class="eyebrow">Budget exhausted</div>
-    <div class="mono" style="font-size:46px;color:var(--amber);font-weight:700;">${wallet.spent} / 100</div>
-    <p style="color:var(--slate);margin:8px 0 4px;">IoT-Coins used</p>
-    <div class="divider"></div>
-    <p style="margin:0 0 18px;color:var(--slate);">No more problems can be attempted. Your completed designs are locked.</p>
-    <div class="row" style="justify-content:center;gap:10px;">
-      <span class="pill live">Score: ${myScore}</span>
-      <span class="pill">Questions completed: ${Object.keys(s.submissions[state.teamId]||{}).length}</span>
-    </div>
-    <button class="btn btn-cyan" style="margin-top:20px;" data-action="finish-round">Finish →</button>
+    ${clockRing(rem, QUESTION_SECONDS, 88)}
+    <h2 style="margin-top:18px;">Answer locked in</h2>
+    <p>You chose <strong>${mine? formatAnswer(q, mine.selected):'—'}</strong> in ${mine?(mine.timeMs/1000).toFixed(1):'—'}s. Waiting on other teams…</p>
+    ${mine && mine.frozen ? `<p class="footnote" style="color:var(--cyan);">❄️ Your frequency was jammed this round.</p>` : ''}
   </div>
   `;
 }
 
-function teamEndedScreen(){
+function teamRevealScreen(){
+  const s = state.session;
+  const idx = s.currentIndex;
+  const q = s.questions[idx];
+  const mine = (s.answers[idx]||{})[state.teamId];
+  const isLast = idx >= s.questions.length -1;
+
+  const ids = Object.keys(s.teams);
+  const ranked = ids.map(id=>({id, score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  const myRank = ranked.findIndex(r=>r.id===state.teamId);
+  const isLastPlace = ranked.length > 1 && myRank === ranked.length-1;
+  const myPowerups = (s.powerups && s.powerups[state.teamId]) || {freeze:0, steal:0};
+  const alreadyStolen = ((s.stolenLog && s.stolenLog[idx]) || []).includes(state.teamId);
+  const canSteal = mine && mine.correct && isLastPlace && myPowerups.steal > 0 && !alreadyStolen;
+
+  let renderedOptions;
+  if(q.type === 'truefalse'){
+    renderedOptions = `<div class="tf-grid">
+      <div class="tf-opt true-opt ${q.tfAnswer?'correct':(mine && mine.selected===true && !mine.correct?'wrong':'')}" style="cursor:default;">✓ True${q.tfAnswer?' ✓':''}</div>
+      <div class="tf-opt false-opt ${!q.tfAnswer?'correct':(mine && mine.selected===false && !mine.correct?'wrong':'')}" style="cursor:default;">✗ False${!q.tfAnswer?' ✓':''}</div>
+    </div>`;
+  } else if(q.type === 'thisorthat'){
+    renderedOptions = revealAnswerBlock(q, s, idx);
+  } else {
+    const clue = questionExtraClue(q);
+    const imgBlock = q.type === 'picture' ? `<div class="pic-frame"><img src="${escapeHtml(q.imageUrl)}" alt=""></div>` : '';
+    renderedOptions = imgBlock + clue + `<div class="opt-grid">
+      ${q.options.map((opt,i)=>`
+        <div class="opt opt-${i} ${i===q.correct?'correct':(mine && mine.selected===i && i!==q.correct?'wrong':'')}" style="cursor:default;">
+          <span class="badge">${String.fromCharCode(65+i)}</span><span>${escapeHtml(opt)}${i===q.correct?' ✓':''}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+
+  return `
+  <div class="qbanner">
+    <div>
+      <div class="qnum">Question ${idx+1} of ${s.questions.length} — Results</div>
+      <div class="qtext">${escapeHtml(q.text)}</div>
+    </div>
+  </div>
+  ${renderedOptions}
+  <div class="divider"></div>
+  <div class="card center">
+    ${q.type === 'thisorthat'
+      ? `<h2 style="color:var(--slate);">Just for laughs — no points this round 🎭</h2>
+         <p class="footnote">${mine ? 'You picked: '+escapeHtml(formatAnswer(q, mine.selected)) : 'No answer submitted.'}</p>`
+      : mine
+      ? `<h2 style="color:${mine.points>0?'var(--cyan)':(mine.points<0?'var(--coral)':'var(--slate)')};">${mine.points!==0? (mine.points>0?'+':'')+mine.points+' points':'No points'}</h2>
+         <p class="footnote">${mine.correct? 'Nice — answered correctly in '+(mine.timeMs/1000).toFixed(1)+'s.' : (mine.points<0 ? 'System Overload — wrong answers cost points this time.' : 'Not quite this round.')}</p>
+         ${mine.frozen ? `<p class="footnote" style="color:var(--cyan);">❄️ Your frequency was jammed this round — timing was capped.</p>` : ''}
+         ${mine.correct && mine.streakBefore>=2 ? `<div class="streak-flame">🔥 Strong Signal! x1.5 streak bonus applied.</div>` : ''}
+         ${!mine.correct && mine.streakBefore>=1 ? `<div class="footnote" style="color:var(--coral);">📉 Signal Dropped — streak reset.</div>` : ''}`
+      : `<h2 style="color:var(--slate);">No answer submitted</h2>`}
+  </div>
+  ${canSteal ? `<div class="center" style="margin-top:14px;">
+    <button class="btn-power steal" data-action="use-steal">🏴‍☠️ Data Breach — steal 150 pts from the leader</button>
+  </div>` : ''}
+  <div class="divider"></div>
+  <h3 style="margin-bottom:10px;">Leaderboard</h3>
+  <div class="card">${leaderboardHTML(s)}</div>
+  <p class="footnote center" style="text-align:center;margin-top:14px;">${isLast? 'Waiting for host to finish the quiz…' : 'Waiting for the host to start the next question…'}</p>
+  `;
+}
+
+function teamFinishedScreen(){
   const s = state.session;
   const ids = Object.keys(s.teams);
-  const ranked = ids.map(id=>({id,score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
-  const myRank = ranked.findIndex(r=>r.id===state.teamId)+1;
+  const ranked = ids.map(id=>({id, score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  const myRank = ranked.findIndex(r=>r.id===state.teamId) + 1;
   return `
   <div class="status-banner">
-    <div class="eyebrow">Round complete</div>
+    <div class="eyebrow">Quiz complete</div>
     <h2>${escapeHtml(state.teamName)} finished #${myRank||'-'}</h2>
   </div>
   <div class="card">${leaderboardHTML(s)}</div>
   `;
 }
 
-// ---------- side effects ----------
+// ---------- helpers ----------
+function escapeHtml(str){
+  return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ---------- render side-effects (QR code, timers, sound & confetti flourishes) ----------
 function afterRender(){
-  if(state.screen==='host-lobby'){
+  if(state.screen === 'host-lobby'){
     const holder = document.getElementById('qrHolder');
     if(holder && window.QRCode){
-      holder.innerHTML='';
+      holder.innerHTML = '';
       const joinUrl = location.origin + location.pathname + '?session=' + state.code;
-      new QRCode(holder, {text:joinUrl, width:180, height:180, colorDark:'#0F1420', colorLight:'#F3F1EA'});
+      new QRCode(holder, { text: joinUrl, width:180, height:180, colorDark:'#12141C', colorLight:'#F5F3EE' });
     }
   }
-  const needsTick = ['host-round','team-round','team-problem'].includes(state.screen);
-  if(needsTick) startTicker(); else stopTicker();
-}
+  const runningTimer = state.screen === 'host-question' || state.screen === 'team-question' || state.screen === 'team-answered';
+  if(runningTimer) startTicker(); else stopTicker();
 
-// ---------- scoring ----------
-function computeChainPool(problem){
-  const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
-  const sensorOpt = state.draft.sensor;
-
-  // The one correct chip for each stage — these are the only chips that can
-  // score a point, and only when placed in their matching slot.
-  const correctChips = [
-    {id:'sensor-correct', type:'sensor', label:sensorOpt.label, emoji:sensorOpt.emoji, correct:true},
-    {id:'conn-correct', type:'connectivity', label:connOpt.label, emoji:connOpt.emoji, correct:true},
-    {id:'cloud-correct', type:'cloud', label:'Cloud', emoji:'☁️', correct:true},
-    {id:'data-correct', type:'data', label:problem.dataLabel, emoji:'📊', correct:true},
-    {id:'action-correct', type:'action', label:problem.actionLabel, emoji:problem.actionEmoji, correct:true}
-  ];
-
-  // Decoy chips — every other option in each category is added as a decoy, so
-  // teams must first pick the RIGHT chip for this scenario, then put it in
-  // the RIGHT slot. A decoy placed anywhere scores 0 for that slot; the
-  // correct chip only scores if it also lands in its correct position.
-  const sensorDecoys = problem.sensorOptions.filter(o=>o.label!==sensorOpt.label)
-    .map((o,i)=>({id:'sensor-decoy'+i, type:'sensor', label:o.label, emoji:o.emoji, correct:false}));
-
-  const connDecoys = problem.connectivity.filter(c=>c.key!==connOpt.key)
-    .map((c,i)=>({id:'conn-decoy'+i, type:'connectivity', label:c.label, emoji:c.emoji, correct:false}));
-
-  const otherProblems = PROBLEMS.filter(p=>p.id!==problem.id);
-  const dataDecoys = otherProblems
-    .map((p,i)=>({id:'data-decoy'+i, type:'data', label:p.dataLabel, emoji:'📊', correct:false}));
-  const actionDecoys = otherProblems
-    .map((p,i)=>({id:'action-decoy'+i, type:'action', label:p.actionLabel, emoji:p.actionEmoji, correct:false}));
-
-  state.chainPoolFull = shuffle([...correctChips, ...sensorDecoys, ...connDecoys, ...dataDecoys, ...actionDecoys]);
-  state.chainSeqIds = [];
-}
-
-// ---------- IoT-Coin budget ----------
-// Recomputes each submission's budget score and the team's wallet by walking
-// the round's problems in canonical order and accumulating coin spend.
-// A design only earns its 5 budget points if the team's running total is
-// still within the shared 100 IoT-Coin allowance at that point.
-function recomputeTeamBudget(teamId, s){
-  let running = 0;
-  const mySubs = s.submissions[teamId] || {};
-  for(const pid of s.problemIds){
-    const sub = mySubs[pid];
-    if(!sub) continue;
-    running += sub.coinCost;
-    sub.budgetPts = running<=100 ? 5 : 0;
-    sub.runningAfter = running;
-    sub.total = sub.sensorPts + sub.connPts + sub.budgetPts + sub.chainPts;
+  // Low-battery beep in the final 5 seconds of a live question (host & team screens).
+  if(state.screen === 'host-question' || state.screen === 'team-question'){
+    const rem = remainingSeconds();
+    if(rem > 0 && rem <= 5 && state.lastBeepSecond !== rem){
+      state.lastBeepSecond = rem;
+      playLowBatterySound();
+    }
+    if(rem > 5) state.lastBeepSecond = null;
   }
-  s.wallets[teamId] = {spent: running, remaining: 100 - running};
-  s.scores[teamId] = Object.values(mySubs).reduce((sum,r)=>sum+r.total,0);
+
+  // Confetti burst the first time a team sees they answered correctly this round.
+  if(state.screen === 'team-reveal' && state.session){
+    const idx = state.session.currentIndex;
+    const mine = (state.session.answers[idx]||{})[state.teamId];
+    if(mine && mine.correct && state.celebratedIndex !== idx){
+      state.celebratedIndex = idx;
+      fireConfetti();
+    }
+  }
 }
 
 // ---------- actions ----------
-async function handleAddQuestionNoop(){}
+async function handleAddQuestion(){
+  const type = document.getElementById('qtype').value;
+  const text = document.getElementById('qtext').value.trim();
+  const doublePoints = type === 'thisorthat' ? false : document.getElementById('doublePoints').checked;
+  if(!text){ state.error = 'Fill in the question/prompt text.'; render(); return; }
+
+  let newQuestion;
+  if(type === 'truefalse'){
+    const tfAnswer = document.getElementById('tfSelect').value === 'true';
+    newQuestion = { type, text, tfAnswer, doublePoints };
+  } else if(type === 'thisorthat'){
+    const optionA = document.getElementById('optionA').value.trim();
+    const optionB = document.getElementById('optionB').value.trim();
+    if(!optionA || !optionB){ state.error = 'Fill in both Option A and Option B.'; render(); return; }
+    newQuestion = { type, text, optionA, optionB, doublePoints:false };
+  } else {
+    // mcq, picture, emoji, oddone, anagram, bluff all share the 4-option shape
+    const opts = [0,1,2,3].map(i=>document.getElementById('opt'+i).value.trim());
+    const correct = parseInt(document.getElementById('correctSelect').value, 10);
+    if(opts.some(o=>!o)){ state.error = 'Fill in all four options.'; render(); return; }
+    newQuestion = { type, text, options: opts, correct, doublePoints };
+    if(type === 'picture'){
+      const imageUrl = document.getElementById('imageUrl').value.trim();
+      if(!imageUrl){ state.error = 'Add an image URL for a Picture Reveal round.'; render(); return; }
+      newQuestion.imageUrl = imageUrl;
+    }
+    if(type === 'emoji'){
+      const emojiClue = document.getElementById('emojiClue').value.trim();
+      if(!emojiClue){ state.error = 'Add the emoji clue for an Emoji Riddle round.'; render(); return; }
+      newQuestion.emojiClue = emojiClue;
+    }
+    if(type === 'anagram'){
+      const scrambled = document.getElementById('scrambled').value.trim();
+      if(!scrambled){ state.error = 'Add the scrambled word/phrase for an Anagram Sprint round.'; render(); return; }
+      newQuestion.scrambled = scrambled;
+    }
+  }
+
+  state.error = '';
+  const s = state.session;
+  s.questions.push(newQuestion);
+  await saveSession(state.code, s);
+  state.newQ = { type:'mcq', text:'', opts:['','','',''], correct:0, tfAnswer:true, imageUrl:'', emojiClue:'', scrambled:'', optionA:'', optionB:'', doublePoints:false };
+  render();
+}
+
+async function handleDeleteQuestion(idx){
+  const s = state.session;
+  s.questions.splice(idx,1);
+  await saveSession(state.code, s);
+  render();
+}
 
 async function handleOpenLobby(){
-  const minutesInput = document.getElementById('roundMinutes');
-  const minutes = minutesInput ? Math.max(1, parseInt(minutesInput.value,10)||20) : state.draftMinutes;
-  state.draftMinutes = minutes;
-  const session = {
-    createdAt: Date.now(),
-    phase: 'lobby',
-    problemIds: state.draftProblemIds.slice(),
-    roundDurationMs: minutes*60000,
-    roundStartedAt: null,
-    teams:{}, scores:{}, submissions:{}, wallets:{}, finished:{}
-  };
-  await saveSession(state.code, session);
-  state.session = session;
+  const s = state.session;
+  s.phase = 'lobby';
+  await saveSession(state.code, s);
   state.screen = 'host-lobby';
   startPolling();
   render();
 }
 
-async function handleStartRound(){
+async function handleStartQuiz(){
   const s = await loadSession(state.code) || state.session;
-  s.phase='round'; s.roundStartedAt=Date.now();
+  s.phase = 'question';
+  s.currentIndex = 0;
+  s.questionStartedAt = Date.now();
   await saveSession(state.code, s);
-  state.session = s; state.autoEndTriggered=false;
-  state.screen='host-round';
+  state.session = s;
+  state.screen = 'host-question';
   render();
 }
 
-async function handleEndRoundNow(){
+async function handleRevealNow(){
   const s = await loadSession(state.code) || state.session;
-  s.phase='ended';
+  s.phase = 'reveal';
   await saveSession(state.code, s);
   state.session = s;
-  if(state.role==='host') state.screen='host-ended';
+  state.screen = 'host-reveal';
+  render();
+}
+
+async function handleNextQuestion(){
+  const s = await loadSession(state.code) || state.session;
+  const isLast = s.currentIndex >= s.questions.length -1;
+  if(isLast){
+    s.phase = 'finished';
+    await saveSession(state.code, s);
+    state.session = s;
+    state.screen = 'host-finished';
+  } else {
+    s.currentIndex += 1;
+    s.phase = 'question';
+    s.questionStartedAt = Date.now();
+    await saveSession(state.code, s);
+    state.session = s;
+    state.screen = 'host-question';
+  }
   render();
 }
 
 async function handleJoinSession(){
-  if(state.joining) return;
-
   const code = document.getElementById('joinCode').value.trim();
   const name = document.getElementById('joinName').value.trim();
   if(!/^[0-9]{4}$/.test(code)){ state.error='Enter a valid 4-digit code.'; render(); return; }
   if(!name){ state.error='Enter a team name.'; render(); return; }
-
-  const existingToken=localStorage.getItem(teamStorageKey(code));
-  if(existingToken){
-    state.error='This quiz attempt is already active on this device. Reopening or using another tab/device is not allowed.';
-    render();
-    return;
-  }
-
-  state.joining = true;
+  const s = await loadSession(code);
+  if(!s){ state.error='No session found with that code.'; render(); return; }
+  state.error = '';
+  const teamId = randId();
+  s.teams[teamId] = name;
+  s.scores[teamId] = 0;
+  s.streaks[teamId] = 0;
+  s.powerups[teamId] = { freeze: 1, steal: 1 };
+  await saveSession(code, s);
+  state.code = code;
+  state.session = s;
+  state.teamId = teamId;
+  state.teamName = name;
+  state.role = 'team';
+  state.screen = s.phase === 'lobby' ? 'team-wait' : (s.phase==='question' ? 'team-question' : 'team-wait');
+  startPolling();
   render();
-
-  try{
-    const response=await fetch('/api/team/join',{
-
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({code,name})
-    });
-    const data=await response.json().catch(()=>({}));
-    if(!response.ok){
-      state.joining = false;
-      state.error=data.error || 'Unable to join this quiz.';
-      render();
-      return;
-    }
-
-    const s=data.session;
-    state.error='';
-    state.code=code;
-    state.session=s;
-    state.teamId=data.teamId;
-    state.teamName=data.teamName;
-    state.teamToken=data.token;
-    state.role='team';
-    state.joining = false;
-
-    localStorage.setItem(teamStorageKey(code), JSON.stringify({teamId:data.teamId,token:data.token}));
-    sessionStorage.setItem(teamTabKey(code), randId());
-
-    // IMPORTANT: after a successful join, go straight to the quiz screen.
-    // If the host has not started the timed round yet, the quiz screen remains
-    // visible and clearly shows that the round is waiting for the host.
-    // Once the host starts, polling automatically switches the state to live.
-    state.screen = s.phase==='ended' ? 'team-ended' : 'team-round';
-    startPolling();
-    render();
-    beginTeamSecurity();
-    history.pushState({blueprintTeam:true,code},'',location.href);
-  }catch(e){
-    state.joining = false;
-    state.error='Unable to connect to the quiz server.';
-    render();
-  }
 }
-async function handleSubmitDesign(){
+
+async function handleSubmitAnswer(rawSelected){
   const s = await loadSession(state.code) || state.session;
+  const qIdx = s.currentIndex;
+  if(s.answers[qIdx] && s.answers[qIdx][state.teamId]) return; // already answered
+  const timeMs = Date.now() - s.questionStartedAt;
+  const q = s.questions[qIdx];
 
-  if(s.phase==='ended'){
-    state.session=s;
-    state.screen='team-ended';
-    render();
-    return;
-  }
-
-  if(!s.wallets[state.teamId]){
-    s.wallets[state.teamId] = {spent:0, remaining:100};
-  }
-
-  const wallet = s.wallets[state.teamId];
-
-  // No more problems are allowed once the 100-coin budget is exhausted.
-  if(wallet.remaining <= 0){
-    if(!s.finished) s.finished = {};
-    s.finished[state.teamId] = true;
+  if(q.type === 'thisorthat'){
+    // Just-for-laughs poll: no correct answer, no points, streak untouched.
+    if(!s.answers[qIdx]) s.answers[qIdx] = {};
+    s.answers[qIdx][state.teamId] = { selected: rawSelected, timeMs, correct: null, points: 0, streakBefore: (s.streaks&&s.streaks[state.teamId])||0, frozen:false };
     await saveSession(state.code, s);
-    state.session=s;
-    state.screen='team-finish';
+    state.session = s;
+    state.answeredIndex = qIdx;
+    state.screen = 'team-answered';
     render();
     return;
   }
 
-  const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
-  if(!problem || !state.draft.sensor || !state.draft.connKey){
-    state.error='Complete the design before submitting.';
-    render();
-    return;
+  let selected, correct;
+  if(q.type === 'truefalse'){
+    selected = rawSelected === 'true';
+    correct = selected === q.tfAnswer;
+  } else {
+    selected = parseInt(rawSelected, 10);
+    correct = selected === q.correct;
   }
 
-  // A completed problem cannot be submitted again or redesigned.
-  const existingSubs = s.submissions[state.teamId] || {};
-  if(existingSubs[problem.id]){
-    state.editingProblem=false;
-    state.session=s;
-    state.screen='team-round';
-    render();
-    return;
-  }
+  const streakBefore = (s.streaks && s.streaks[state.teamId]) || 0;
+  const frozen = ((s.frozenTargets && s.frozenTargets[qIdx]) || []).includes(state.teamId);
+  const points = computePoints({ timeMs, correct, streakBefore, doublePoints: !!q.doublePoints, frozen });
 
-  const connOpt = problem.connectivity.find(c=>c.key===state.draft.connKey);
-  if(!connOpt){
-    state.error='Please choose a valid connectivity option.';
-    render();
-    return;
-  }
-
-  const sensorPts = problem.correctSensors.includes(state.draft.sensor.label) ? 10 : 0;
-  const connPts = connOpt.points;
-  const coinCost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
-
-  // Never allow the team to spend more than its remaining 100 IoT-Coins.
-  if(coinCost > wallet.remaining){
-    state.error=`This design costs ${coinCost} IoT-Coins, but only ${wallet.remaining} remain. Choose a lower-cost connectivity option.`;
-    render();
-    return;
-  }
-
-  const chosenChips = state.chainSeqIds.map(id => state.chainPoolFull.find(c=>c.id===id));
-  // Award 1 point per slot that holds BOTH the right chip (not a decoy) AND
-  // the right position for that chip. A decoy in any slot scores 0 for that
-  // slot; the correct chip out of position also scores 0 for that slot —
-  // only the other, correctly-placed slots keep their points.
-  const chainPts = CHAIN_TYPES.reduce((pts, type, i) => {
-    const chip = chosenChips[i];
-    return pts + (chip && chip.correct && chip.type === type ? 1 : 0);
-  }, 0);
-  const chainCorrect = chainPts === CHAIN_TYPES.length;
-
-  const result = {
-    sensorLabel: state.draft.sensor.label, sensorPts,
-    connLabel: connOpt.label, connValidity: connOpt.validity, connPts, connReason: connOpt.reason,
-    coinCost, budgetPts:0, runningAfter:0, chainPts, total:0
-  };
-
-  if(!s.submissions[state.teamId]) s.submissions[state.teamId] = {};
-  s.submissions[state.teamId][problem.id] = result;
-
-  recomputeTeamBudget(state.teamId, s);
-
-  if(!s.finished) s.finished = {};
-
-  // Exactly 0 coins means the team is finished immediately.
-  if(s.wallets[state.teamId].remaining === 0){
-    s.finished[state.teamId] = true;
-  }
+  if(!s.answers[qIdx]) s.answers[qIdx] = {};
+  s.answers[qIdx][state.teamId] = { selected, timeMs, correct, points, streakBefore, frozen };
+  s.scores[state.teamId] = (s.scores[state.teamId]||0) + points;
+  s.streaks = s.streaks || {};
+  s.streaks[state.teamId] = correct ? streakBefore + 1 : 0;
 
   await saveSession(state.code, s);
-
   state.session = s;
-  state.editingProblem = false;
-  state.error='';
-
-  if(s.finished[state.teamId]){
-    state.screen='team-finish';
-  }else{
-    state.screen='team-problem';
-  }
-
+  state.answeredIndex = qIdx;
+  state.screen = 'team-answered';
+  if(timeMs < 3000 && correct) playConnectSound();
   render();
 }
 
-// ---------- click delegation ----------
+// ❄️ Jam a rival's signal for the current question — costs the caster one freeze charge.
+async function handleUseFreeze(targetTeamId){
+  const s = await loadSession(state.code) || state.session;
+  const qIdx = s.currentIndex;
+  s.powerups = s.powerups || {};
+  const mine = s.powerups[state.teamId] || { freeze:1, steal:1 };
+  if(mine.freeze <= 0) return;
+  s.freezeUsedBy = s.freezeUsedBy || {};
+  if((s.freezeUsedBy[qIdx]||[]).includes(state.teamId)) return; // one freeze per question
+
+  mine.freeze -= 1;
+  s.powerups[state.teamId] = mine;
+  s.frozenTargets[qIdx] = s.frozenTargets[qIdx] || [];
+  s.frozenTargets[qIdx].push(targetTeamId);
+  s.freezeUsedBy[qIdx] = s.freezeUsedBy[qIdx] || [];
+  s.freezeUsedBy[qIdx].push(state.teamId);
+
+  await saveSession(state.code, s);
+  state.session = s;
+  playFreezeSound();
+  render();
+}
+
+// 🏴‍☠️ Steal Round — the last-place team can steal points from the current leader
+// after a round they answered correctly, once per game.
+async function handleUseSteal(){
+  const s = await loadSession(state.code) || state.session;
+  const qIdx = s.currentIndex;
+  s.powerups = s.powerups || {};
+  const mine = s.powerups[state.teamId] || { freeze:1, steal:1 };
+  if(mine.steal <= 0) return;
+  s.stolenLog = s.stolenLog || {};
+  if((s.stolenLog[qIdx]||[]).includes(state.teamId)) return; // already stolen this round
+
+  const ids = Object.keys(s.teams);
+  const ranked = ids.map(id=>({id, score:s.scores[id]||0})).sort((a,b)=>b.score-a.score);
+  const leader = ranked[0];
+  if(!leader || leader.id === state.teamId) return;
+
+  const STEAL_AMOUNT = 150;
+  const taken = Math.min(STEAL_AMOUNT, s.scores[leader.id]||0);
+  s.scores[leader.id] = (s.scores[leader.id]||0) - taken;
+  s.scores[state.teamId] = (s.scores[state.teamId]||0) + taken;
+  mine.steal -= 1;
+  s.powerups[state.teamId] = mine;
+  s.stolenLog[qIdx] = s.stolenLog[qIdx] || [];
+  s.stolenLog[qIdx].push(state.teamId);
+
+  await saveSession(state.code, s);
+  state.session = s;
+  playStealSound();
+  render();
+}
+
+// ---------- top-level click handling ----------
 document.addEventListener('click', async (e)=>{
   const el = e.target.closest('[data-action]');
   if(!el) return;
   const action = el.getAttribute('data-action');
 
-  if(state.role==='team' && !['join-session','pick-sensor','pick-conn','add-chip','reset-chain','submit-design','finish-round'].includes(action)){
-    const ok=await validateTeamSecurity();
-    if(!ok) return;
-  }
-
-  if(action==='go-host'){
-    state.role='host'; state.code=randCode();
-    state.draftProblemIds=[]; state.draftMinutes=20;
-    state.screen='host-problems'; render();
-  }
-  else if(action==='go-team-join'){ state.role='team'; state.screen='team-join'; render(); }
-  else if(action==='toggle-problem'){
-    const id = parseInt(el.getAttribute('data-id'),10);
-    const i = state.draftProblemIds.indexOf(id);
-    if(i>=0) state.draftProblemIds.splice(i,1); else state.draftProblemIds.push(id);
+  if(action === 'go-host'){
+    state.role = 'host';
+    state.code = randCode();
+    state.session = blankSession();
+    await saveSession(state.code, state.session);
+    state.screen = 'host-setup';
     render();
   }
-  else if(action==='select-all-problems'){ state.draftProblemIds = PROBLEMS.map(p=>p.id); render(); }
-  else if(action==='clear-problems'){ state.draftProblemIds=[]; render(); }
-  else if(action==='go-host-timer'){ state.screen='host-timer'; render(); }
-  else if(action==='back-to-problems' && state.role==='host'){ state.screen='host-problems'; render(); }
-  else if(action==='back-to-problems' && state.role==='team'){
-    const s = await loadSession(state.code); if(s) state.session=s;
-    state.screen = (state.session.phase==='ended') ? 'team-ended' : 'team-round';
+  else if(action === 'go-team-join'){
+    state.role = 'team';
+    state.screen = 'team-join';
     render();
   }
-  else if(action==='open-lobby') handleOpenLobby();
-  else if(action==='start-round') handleStartRound();
-  else if(action==='end-round-now') handleEndRoundNow();
-  else if(action==='join-session') handleJoinSession();
-  else if(action==='open-problem'){
-    const s = await loadSession(state.code) || state.session;
-    state.session = s;
-
-    const wallet = s.wallets[state.teamId] || {spent:0, remaining:100};
-
-    // Block every new question after all 100 IoT-Coins are used.
-    if(s.phase==='ended' || wallet.remaining <= 0 || (s.finished && s.finished[state.teamId])){
-      state.screen = s.phase==='ended' ? 'team-ended' : 'team-finish';
-      render();
-      return;
-    }
-
-    state.currentProblemId = parseInt(el.getAttribute('data-id'),10);
-    state.editingProblem = false;
-    state.draft = {sensor:null, connKey:null};
-    state.chainPoolFull=[]; state.chainSeqIds=[];
-    state.error='';
-    state.screen='team-problem'; render();
+  else if(action === 'add-question') handleAddQuestion();
+  else if(action === 'del-question') handleDeleteQuestion(parseInt(el.getAttribute('data-idx'),10));
+  else if(action === 'open-lobby') handleOpenLobby();
+  else if(action === 'start-quiz') handleStartQuiz();
+  else if(action === 'reveal-now') handleRevealNow();
+  else if(action === 'next-question') handleNextQuestion();
+  else if(action === 'join-session') handleJoinSession();
+  else if(action === 'suggest-name'){
+    const pick = NAME_SUGGESTIONS[Math.floor(Math.random()*NAME_SUGGESTIONS.length)];
+    const inp = document.getElementById('joinName');
+    if(inp) inp.value = pick;
   }
-
-
-  else if(action==='pick-sensor'){
-    const label = el.getAttribute('data-label');
-    const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
-    const opt = problem.sensorOptions.find(o=>o.label===label);
-    state.draft.sensor = opt;
-    if(state.draft.connKey) computeChainPool(problem);
-    render();
-  }
-  else if(action==='pick-conn'){
-    const key = el.getAttribute('data-key');
-    state.draft.connKey = key;
-    const problem = PROBLEMS.find(p=>p.id===state.currentProblemId);
-    if(state.draft.sensor) computeChainPool(problem);
-    render();
-  }
-  else if(action==='add-chip'){
-    const id = el.getAttribute('data-id');
-    if(!state.chainSeqIds.includes(id) && state.chainSeqIds.length<5) state.chainSeqIds.push(id);
-    render();
-  }
-  else if(action==='reset-chain'){ state.chainSeqIds=[]; render(); }
-  else if(action==='submit-design') handleSubmitDesign();
-  else if(action==='finish-round'){
-    const s = await loadSession(state.code) || state.session;
-    state.session=s;
-    state.screen = s.phase==='ended' ? 'team-ended' : 'team-ended';
-    render();
-  }
-  else if(action==='reset'){
-    if(state.role==='team' && state.teamId && state.teamToken){
-      await markJoinPageNavigation();
-      return;
-    }
+  else if(action === 'submit-answer') handleSubmitAnswer(el.getAttribute('data-idx'));
+  else if(action === 'use-freeze') handleUseFreeze(el.getAttribute('data-target'));
+  else if(action === 'use-steal') handleUseSteal();
+  else if(action === 'reset'){
     stopPolling(); stopTicker();
     Object.assign(state, {
       role:null, screen:'landing', code:null, session:null, teamId:null, teamName:null,
-      draftProblemIds:[], draftMinutes:20, currentProblemId:null, editingProblem:false,
-      draft:{sensor:null,connKey:null}, chainPoolFull:[], chainSeqIds:[], autoEndTriggered:false, error:''
+      answeredIndex:-1, newQ:{type:'mcq',text:'',opts:['','','',''],correct:0,tfAnswer:true,imageUrl:'',emojiClue:'',scrambled:'',optionA:'',optionB:'',doublePoints:false},
+      lastBeepSecond:null, celebratedIndex:-1, autoRevealedIndex:-1, error:''
     });
     render();
   }
 });
 
-window.addEventListener('beforeunload', ()=>{
-  // Do not disqualify on refresh: sessionStorage survives a normal reload.
-  // The next load detects a missing tab marker after a real close/reopen.
-  if(state.role==='team' && state.code && state.teamId && state.teamToken){
-    try{
-      const payload=JSON.stringify({code:state.code,teamId:state.teamId,token:state.teamToken,tabId:state.tabId});
-      navigator.sendBeacon('/api/team/presence', new Blob([payload],{type:'application/json'}));
-    }catch(e){}
-  }
+// keep draft question text alive across re-renders on this screen (no polling active there)
+document.addEventListener('input', (e)=>{
+  if(state.screen !== 'host-setup') return;
+  const id = e.target.id;
+  if(id === 'qtext') state.newQ.text = e.target.value;
+  else if(id === 'imageUrl') state.newQ.imageUrl = e.target.value;
+  else if(id === 'emojiClue') state.newQ.emojiClue = e.target.value;
+  else if(id === 'scrambled') state.newQ.scrambled = e.target.value;
+  else if(id === 'optionA') state.newQ.optionA = e.target.value;
+  else if(id === 'optionB') state.newQ.optionB = e.target.value;
+  else if(id && /^opt[0-3]$/.test(id)) state.newQ.opts[parseInt(id.replace('opt',''),10)] = e.target.value;
+  else if(id === 'correctSelect') state.newQ.correct = parseInt(e.target.value,10);
+  else if(id === 'doublePoints') state.newQ.doublePoints = e.target.checked;
+});
+document.addEventListener('change', (e)=>{
+  if(state.screen !== 'host-setup') return;
+  if(e.target.id === 'correctSelect'){ state.newQ.correct = parseInt(e.target.value,10); render(); }
+  else if(e.target.id === 'qtype'){ state.newQ.type = e.target.value; render(); }
+  else if(e.target.id === 'tfSelect'){ state.newQ.tfAnswer = e.target.value === 'true'; render(); }
+  else if(e.target.id === 'doublePoints'){ state.newQ.doublePoints = e.target.checked; render(); }
 });
 
-// ---------- init ----------
-(async function init(){
+// ---------- init: auto-detect ?session=CODE for QR joins ----------
+(function init(){
   const params = new URLSearchParams(location.search);
   const sess = params.get('session');
   if(sess && /^[0-9]{4}$/.test(sess)){
-    state.code = sess; state.role='team'; state.screen='team-join';
-    const wasClosed = await checkClosedOrDuplicatedAttempt(sess);
-    if(wasClosed){
-      state.error='Your previous quiz window was closed and reopened. That attempt is disqualified.';
-    }
+    state.code = sess;
+    state.role = 'team';
+    state.screen = 'team-join';
   }
   render();
-
-  window.addEventListener('popstate', async ()=>{
-    if(state.role==='team' && state.teamId){
-      await markJoinPageNavigation();
-      history.pushState({blueprintTeam:true,code:state.code},'',location.href);
-    }
-  });
 })();
 </script>
 </body>
