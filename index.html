@@ -438,7 +438,7 @@ const state = {
   draftProblemIds:[], draftSeconds:60,
   draft:{sensor:null, connKey:null},
   chainPoolFull:[], chainSeqIds:[],
-  pollTimer:null, tickTimer:null, autoEndTriggered:false, autoRevealedIndex:-1,
+  pollTimer:null, tickTimer:null, autoEndTriggered:false, autoRevealedIndex:-1, lastSeenProblemIndex:-1,
   teamToken:null, tabId:null, securityTimer:null, securityChannel:null,
   securityMessage:'', serverTimeOffset:0,
   error:'', joining:false
@@ -665,6 +665,20 @@ function autoAdvance(){
   }
   const problem = PROBLEMS.find(p=>p.id === s.problemIds[s.currentProblemIndex]);
   if(!problem) return;
+
+  // A new problem just went live for everyone — wipe this team's local design
+  // draft (sensor/connectivity picks) and pipeline arrangement so the last
+  // problem's choices don't visually carry over into the new one. Without
+  // this, whichever sensor/connectivity/chip happened to share a label with
+  // the previous problem's pick would show up pre-selected here.
+  if(state.lastSeenProblemIndex !== s.currentProblemIndex){
+    state.lastSeenProblemIndex = s.currentProblemIndex;
+    state.draft = {sensor:null, connKey:null};
+    state.chainPoolFull = [];
+    state.chainSeqIds = [];
+    state.error = '';
+  }
+
   const mySubs = s.submissions[state.teamId] || {};
   const alreadySubmitted = !!mySubs[problem.id];
 
@@ -1057,7 +1071,7 @@ function teamQuestionScreen(){
     const connOpt = problem.connectivity.find(c=>c.key===d.connKey);
     const cost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
     const projected = wallet.spent + cost;
-    const over = projected > 100;
+    const over = projected > TOTAL_BUDGET;
     costPreview = `<p style="margin:10px 0 0;font-size:13px;color:${over?'var(--coral)':'var(--slate)'};">
       This choice costs <strong style="color:${over?'var(--coral)':'var(--amber)'};">${cost} IoT-Coins</strong>.
       Projected total spend so far: <strong>${projected} / ${TOTAL_BUDGET}</strong>${over?' — over budget, this design will lose the 5 budget points':''}.
@@ -1544,7 +1558,7 @@ document.addEventListener('click', async (e)=>{
       role:null, screen:'landing', code:null, session:null, teamId:null, teamName:null,
       draftProblemIds:[], draftSeconds:60,
       draft:{sensor:null,connKey:null}, chainPoolFull:[], chainSeqIds:[],
-      autoEndTriggered:false, autoRevealedIndex:-1, error:'', joining:false
+      autoEndTriggered:false, autoRevealedIndex:-1, lastSeenProblemIndex:-1, error:'', joining:false
     });
     render();
   }
