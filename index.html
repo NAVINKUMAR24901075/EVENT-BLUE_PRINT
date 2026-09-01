@@ -313,14 +313,31 @@ const state = {
   chainPoolFull:[], chainSeqIds:[],
   pollTimer:null, tickTimer:null, autoEndTriggered:false, autoRevealedIndex:-1,
   teamToken:null, tabId:null, securityTimer:null, securityChannel:null,
-  securityMessage:'',
+  securityMessage:'', serverTimeOffset:0,
   error:'', joining:false
 };
 
 // ---------- SERVER STORAGE ----------
+// Countdown timers are computed as (now - problemStartedAt). problemStartedAt
+// is stamped using the HOST's device clock. If the team's device clock is
+// even a few seconds off from the host's (very common — most laptops/phones
+// aren't perfectly synced), the team's countdown comes out shorter or longer
+// than the host's, even though both are reading the same duration. Fix: use
+// the server's Date response header as a shared reference clock. Every poll,
+// we work out the gap between "what the server thinks time is" and "what
+// this device thinks time is", and use that gap to correct Date.now() before
+// doing any countdown math — so host and team agree on the exact same
+// remaining time regardless of their own clocks.
+function serverNow(){ return Date.now() + (state.serverTimeOffset||0); }
+
 async function loadSession(code){
   try{
     const response = await fetch(`/api/sessions/${encodeURIComponent(code)}`);
+    const dateHeader = response.headers.get('date');
+    if(dateHeader){
+      const serverMs = new Date(dateHeader).getTime();
+      if(!isNaN(serverMs)) state.serverTimeOffset = serverMs - Date.now();
+    }
     if(!response.ok) return null;
     return await response.json();
   }catch(e){
@@ -342,6 +359,12 @@ async function saveSession(code, obj){
       headers,
       body: JSON.stringify(obj)
     });
+
+    const dateHeader = response.headers.get('date');
+    if(dateHeader){
+      const serverMs = new Date(dateHeader).getTime();
+      if(!isNaN(serverMs)) state.serverTimeOffset = serverMs - Date.now();
+    }
 
     if(!response.ok){
       console.error("Failed to save session:", response.status);
@@ -530,7 +553,7 @@ function autoAdvance(){
 function questionRemainingMs(){
   const s = state.session;
   if(!s || !s.problemStartedAt) return s ? s.problemDurationMs : 0;
-  return Math.max(0, s.problemDurationMs - (Date.now()-s.problemStartedAt));
+  return Math.max(0, s.problemDurationMs - (serverNow()-s.problemStartedAt));
 }
 
 // Ticks fire every 250ms while a countdown is on screen. A full render()
@@ -1140,7 +1163,7 @@ async function handleOpenLobby(){
 
 async function handleStartRound(){
   const s = await loadSession(state.code) || state.session;
-  s.phase='question'; s.currentProblemIndex=0; s.problemStartedAt=Date.now();
+  s.phase='question'; s.currentProblemIndex=0; s.problemStartedAt=serverNow();
   await saveSession(state.code, s);
   state.session = s; state.autoEndTriggered=false; state.autoRevealedIndex=-1;
   state.screen='host-question';
@@ -1167,7 +1190,7 @@ async function handleNextProblem(){
   } else {
     s.currentProblemIndex += 1;
     s.phase='question';
-    s.problemStartedAt = Date.now();
+    s.problemStartedAt = serverNow();
     await saveSession(state.code, s);
     state.session = s;
     state.screen='host-question';
