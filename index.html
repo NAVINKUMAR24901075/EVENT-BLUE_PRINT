@@ -308,7 +308,7 @@ const CHAIN_TYPES = ["sensor","connectivity","cloud","data","action"];
 const state = {
   role:null, screen:'landing', code:null, session:null,
   teamId:null, teamName:null,
-  draftProblemIds:[], draftSeconds:180,
+  draftProblemIds:[], draftSeconds:60,
   draft:{sensor:null, connKey:null},
   chainPoolFull:[], chainSeqIds:[],
   pollTimer:null, tickTimer:null, autoEndTriggered:false, autoRevealedIndex:-1,
@@ -1049,7 +1049,7 @@ function recomputeTeamBudget(teamId, s){
 // ---------- actions ----------
 async function handleOpenLobby(){
   const secondsInput = document.getElementById('problemSeconds');
-  const seconds = secondsInput ? Math.max(10, parseInt(secondsInput.value,10)||180) : state.draftSeconds;
+  const seconds = secondsInput ? Math.max(10, parseInt(secondsInput.value,10)||60) : state.draftSeconds;
   state.draftSeconds = seconds;
   const session = {
     createdAt: Date.now(),
@@ -1262,7 +1262,7 @@ document.addEventListener('click', async (e)=>{
 
   if(action==='go-host'){
     state.role='host'; state.code=randCode();
-    state.draftProblemIds=[]; state.draftSeconds=180;
+    state.draftProblemIds=[]; state.draftSeconds=60;
     state.screen='host-problems'; render();
   }
   else if(action==='go-team-join'){ state.role='team'; state.screen='team-join'; render(); }
@@ -1315,7 +1315,7 @@ document.addEventListener('click', async (e)=>{
     stopPolling(); stopTicker();
     Object.assign(state, {
       role:null, screen:'landing', code:null, session:null, teamId:null, teamName:null,
-      draftProblemIds:[], draftSeconds:180,
+      draftProblemIds:[], draftSeconds:60,
       draft:{sensor:null,connKey:null}, chainPoolFull:[], chainSeqIds:[],
       autoEndTriggered:false, autoRevealedIndex:-1, error:'', joining:false
     });
