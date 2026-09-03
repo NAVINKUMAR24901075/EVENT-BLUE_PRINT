@@ -1078,7 +1078,7 @@ function teamQuestionScreen(){
   let costPreview = '';
   if(d.connKey){
     const connOpt = problem.connectivity.find(c=>c.key===d.connKey);
-    const cost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
+    const cost = connOpt.baseCost;
     const projected = wallet.spent + cost;
     const over = projected > TOTAL_BUDGET;
     costPreview = `<p style="margin:10px 0 0;font-size:13px;color:${over?'var(--coral)':'var(--slate)'};">
@@ -1116,14 +1116,10 @@ function teamQuestionScreen(){
   <div class="card" style="margin-bottom:16px;">
     <div class="eyebrow">Step 2 — Choose your connectivity</div>
     <div class="opt-grid" style="margin-top:12px;">
-      ${problem.connectivity.map(c=>{
-        const totalCost = c.baseCost + (c.validity==='acceptable' ? c.penalty : 0);
-        const hasPenalty = c.validity==='acceptable' && c.penalty>0;
-        return `
+      ${problem.connectivity.map(c=>`
         <button class="selopt ${d.connKey===c.key?'sel':''}" data-action="pick-conn" data-key="${c.key}">
-          <span class="em">${c.emoji}</span><span>${escapeHtml(c.label)}</span>
-          <span class="costbadge">${totalCost} coins${hasPenalty?` <span style="opacity:.7;font-size:11px;">(${c.baseCost}+${c.penalty} penalty)</span>`:''}</span>
-        </button>`;}).join('')}
+          <span class="em">${c.emoji}</span><span>${escapeHtml(c.label)}</span><span class="costbadge">${c.baseCost} coins</span>
+        </button>`).join('')}
     </div>
     ${costPreview}
   </div>
@@ -1190,7 +1186,7 @@ function teamRevealScreen(){
       <div class="bp ${r.connPts===0?'zero':''}">+${r.connPts}/10</div>
     </div>
     <div class="breakdown-row">
-      <div><div class="bl">Budget — this design cost ${r.coinCost} IoT-Coins</div><div class="bd">Connectivity base cost${r.connValidity==='acceptable'?' + trade-off penalty':''}. Running total after this problem: <strong style="color:${r.runningAfter>TOTAL_BUDGET?'var(--coral)':'var(--paper)'};">${r.runningAfter} / ${TOTAL_BUDGET}</strong></div></div>
+      <div><div class="bl">Budget — this design cost ${r.coinCost} IoT-Coins</div><div class="bd">Connectivity base cost. Running total after this problem: <strong style="color:${r.runningAfter>TOTAL_BUDGET?'var(--coral)':'var(--paper)'};">${r.runningAfter} / ${TOTAL_BUDGET}</strong></div></div>
       <div class="bp ${r.budgetPts===0?'zero':''}">+${r.budgetPts}/5</div>
     </div>
     <div class="breakdown-row">
@@ -1480,7 +1476,7 @@ async function handleSubmitDesign(){
 
   const sensorPts = problem.correctSensors.includes(state.draft.sensor.label) ? 10 : 0;
   const connPts = connOpt.points;
-  const coinCost = connOpt.baseCost + (connOpt.validity==='acceptable' ? connOpt.penalty : 0);
+  const coinCost = connOpt.baseCost;
 
   // Never allow the team to spend more than its remaining IoT-Coins (TOTAL_BUDGET total).
   if(coinCost > wallet.remaining){
