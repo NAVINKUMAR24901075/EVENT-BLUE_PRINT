@@ -1116,10 +1116,14 @@ function teamQuestionScreen(){
   <div class="card" style="margin-bottom:16px;">
     <div class="eyebrow">Step 2 — Choose your connectivity</div>
     <div class="opt-grid" style="margin-top:12px;">
-      ${problem.connectivity.map(c=>`
+      ${problem.connectivity.map(c=>{
+        const totalCost = c.baseCost + (c.validity==='acceptable' ? c.penalty : 0);
+        const hasPenalty = c.validity==='acceptable' && c.penalty>0;
+        return `
         <button class="selopt ${d.connKey===c.key?'sel':''}" data-action="pick-conn" data-key="${c.key}">
-          <span class="em">${c.emoji}</span><span>${escapeHtml(c.label)}</span><span class="costbadge">${c.baseCost} coins</span>
-        </button>`).join('')}
+          <span class="em">${c.emoji}</span><span>${escapeHtml(c.label)}</span>
+          <span class="costbadge">${totalCost} coins${hasPenalty?` <span style="opacity:.7;font-size:11px;">(${c.baseCost}+${c.penalty} penalty)</span>`:''}</span>
+        </button>`;}).join('')}
     </div>
     ${costPreview}
   </div>
